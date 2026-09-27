@@ -1,3 +1,0 @@
-# design
-
-<!-- specramo template: design -->

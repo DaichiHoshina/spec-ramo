@@ -1,3 +1,0 @@
-# prd
-
-<!-- specramo template: prd -->
