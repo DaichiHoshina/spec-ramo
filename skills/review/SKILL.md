@@ -54,6 +54,7 @@ C が「読めなかった file」を返したときは、C の結果を採ら�
 ## Step 4: 統合と出力
 
 - 同じ `file:line` の指摘は 1 件にまとめ、どのエージェントが出したかを添える。重大度が食い違うときは高い方を採る
+- migration への指摘は、`/specramo:implement` Step 3 と同じ使い捨ての container で、指摘した箇所と修正案の両方を実行して確かめてから出力する。実行できなかったときは、指摘と修正案に「未検証」と添える。修正案も DB で実行するまで正しいか分からず、確かめない修正案は別のエラーになりうる
 - 出力の冒頭に次の 3 行を置き、`${CLAUDE_PLUGIN_ROOT}/skills/review/perspectives.md` の出力の形で Critical と Warning を並べる
 
 ```
@@ -61,6 +62,8 @@ review: Phase <n> / 全 <N> — <Phase 名>
 base: <ref> (<理由>)
 起動: A, C, D (B は省いた: <理由>)
 ```
+
+- 同じ内容を、作業計画書と同じ dir の `review-phase<n>.md` に書き出す。既にあれば上書きし、最新の review の結果だけを置く (`--fix` の後の再 review も上書きする)。`/specramo:explain` はこの file を読み、未解決の指摘がある箇所を正しい前提として説明しない
 
 ## Step 5: 状態を進める
 

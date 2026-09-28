@@ -36,6 +36,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/require-config.sh"
 
 1. 対象の author (`git log -1 --format=%an <commit>`) が利用者本人なら、前提知識の段はその author が作成した仕組みを省く
 2. diff の行数 (`git diff --stat`) が 10 行未満なら、`--level` を指定しないときの値を `brief` にする
+3. 実装後の説明では、作業計画書と同じ dir の `review-phase<n>.md` を読む。Critical か Warning が 1 件以上あれば、対象の宣言の直後に「review の未解決の指摘 n 件」と各指摘の `file:line` を 1 行ずつ示す。指摘された箇所は指摘の内容を添えて説明し、正しい前提として説明しない (例: 指摘で失敗すると分かった SQL を「この指定で完了する」と説明しない)。file が無く、状態が「実装中」なら「review 前」と 1 行示す
 
 説明の先頭で「対象: <diff の範囲 / Phase / file / symbol> (author: <名前> / <n> 行)」を 1 行宣言してから本文に入る。利用者の入力に判断を求める問いが含まれていても、対象の説明を先に示し、問いへの答えは末尾の「補足」に 1 段落だけ記載する。
 

@@ -63,6 +63,7 @@ disable-model-invocation: true
 ## Step 3: 完了条件の実行
 
 - Phase の完了条件に記載された command (test 名 / lint / API response) を改めて実行し、出力と照合する。実行しなかった条件は「未実行」と記載する。
+- migration を含む Phase で、共有の DB に適用できないときは、repo と同じ version の DB を使い捨ての container で起動する。共有の DB に適用できないのは、他の branch の schema が入っているときや、他の作業と共有しているときになる。その container で up と down を実行して確かめ、終わったら container を削除する (名前に `specramo-` を付けて起動する)。container を起動できない環境では「未実行」と記載する。migration の構文や ALGORITHM の指定の誤りは、DB で実行するまで分からない。
 - 変更した symbol 名と file 名で test の dir を grep し、hit した test file を全部実行する。共有 fixture を変えたときは、同じ fixture dir を読む package の test も全部実行する。
 - mutation check として、Phase 詳細設計の「テスト観点」が指す条件を 1 つ壊し、該当の test が fail することを確かめてから元に戻す。
   - 復元は、壊す前の file をコピーしておくか逆置換で行う
