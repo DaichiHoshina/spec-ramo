@@ -17,7 +17,7 @@
 | **root-cause** | Permanent fix vs workaround, recurrence patterns |
 | **silent-failure** | Error swallowing, empty catch |
 | **type-design** | Type-encoded invariants, avoid enum abuse |
-| **db-concurrency** | Deadlock / gap lock / FOR UPDATE + INSERT / external I/O in TX / missing retry |
+| **db-concurrency** | Deadlock / gap lock / FOR UPDATE + INSERT / external I/O in TX / missing retry。UPDATE / DELETE / `FOR UPDATE` の WHERE が主キーでも UNIQUE でもない列だけのときは、ロックが前後の範囲 (gap) に広がる。先に主キーを SELECT して主キーで更新する形になっているか、なっていないならその理由を指摘する |
 
 **regression-guard (常時適用)**: 今は壊れていない箇所への劣化を検出する観点。観点の選択によらず、下の「Regression Guard」の表を当てる。
 

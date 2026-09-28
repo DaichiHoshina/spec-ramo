@@ -76,6 +76,7 @@ Phase の責務が **現在どこでどう実現されているか**を実物で
 - 依存する interface / 型 / 外部 API / DB
 - 関連する既存 test の場所。あわせてその repo の test の書き方を 1 つ確かめ、file 名の規約と build tag と実行 command を転記する
 - 変更時に注意が必要な箇所を確認する。JOIN 経由の参照、COUNT クエリ、cache、batch、非同期の処理、監査ログ、ORM の table 登録が対象になる
+- table の行の意味が変わる変更 (物理削除から論理削除への切り替え、状態の値の追加など) では、table ごとに `bash "${CLAUDE_PLUGIN_ROOT}/scripts/table-readers.sh" <repo の root> <table 名>` を実行する。その出力を「実装メモ」の下の `### table を読む query` の節に、`table: <table 名>` の行に続けてそのまま記載する (末尾の「合計 n 件」も含める)。出力には、別の package や管理画面、batch の query も含まれる。条件の追加が必要な query は変更対象 file に含め、この Phase で扱わない query は作業計画書の対象外に記載する
 - 作業計画書と実物の食い違い
 
 **作業計画書 / Design Doc が名指しする既存の担保 (ロック / TX 境界 / 一意制約 / 状態遷移) は、その担保を取ると書かれた処理の入口から呼び出し順に確認して特定する**。`grep "FOR UPDATE"` の hit や file 名の一致で特定しない。同じ語を含む file が複数あると、別機能の担保を根拠にしたまま「記述と実物が食い違う」と判定することになる。確認した経路は `<入口の file:line> から <担保の file:line>` の形で 1 行記載する。
@@ -126,6 +127,7 @@ Step 2 の事実を踏まえ、**記載する価値のある項目だけ**を記
 - 本文は判断を言葉で書き、file 名 / method 名 / 行番号 / test の実行 command は末尾の「実装メモ」表 1 つに集める。表の行は本文の判断の番号と対応させる。変更対象 file の一覧もこの中の `### 変更対象 file` に置く。本文に識別子が並ぶと、読み手は判断より先に名前を読み解くことになり、判断が伝わらない。code comment の文面も書かない (実装時に決める)
 - 分量は 100 行程度を目安にする。上限ではないので、超えるときは判断の無い節が残存していないかを 1 度確認し、削るものが無ければ超えてよい。目安を大きく超えるときは Phase 自体の大きさを疑い、`/specramo:plan --update` で Phase を割るかを検討する
 - Next command を 1 行だけ記載する: `/specramo:explain <作業計画書 path> --phase <n>` (実装前に設計の説明を受け、その Next で `/specramo:implement` へ進む)。`/specramo:explain` と `/specramo:implement` は作業計画書と同じ dir だけを検索するので、出力先を変えない
+- 書き出した後に `bash "${CLAUDE_PLUGIN_ROOT}/scripts/phase-gate.sh" <出力した file>` を実行し、FAIL 0 まで修正する。論理削除を扱う Phase で「table を読む query」の節が無いか、節の件数が改めて数えた件数と合わないと FAIL になる
 - 実装に進まない
 
 ## Guard
