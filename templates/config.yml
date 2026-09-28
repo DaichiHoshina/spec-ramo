@@ -1,0 +1,22 @@
+# Spec Ramo の設定 (/specramo:init が作成した)
+# 書式は「key: value」の 1 行か、「key:」に続く「  - value」の list だけを読む
+
+# 成果物 (PRD / Design Doc / 作業計画書 / Phase 詳細設計) を置く dir。機能ごとに sub dir を作る
+specs_dir: .specramo/specs
+
+# 1 PR の想定変更行数の上限 (テストを除く)。作業計画書検査がこの値で判定する
+max_lines: 400
+
+# 変更行数から除くテスト file の path pattern
+test_paths:
+#  - "**/*_test.go"
+#  - "**/*.spec.ts"
+
+# Phase の branch 名の形。<issue> / <PR> / <n> は数字、その他の <word> は英数字に一致する
+# 未記入なら branch 名の形を検査せず、有無だけを判定する
+# branch_pattern: "phase/<PR>-<slug>"
+
+# /specramo:review のエージェント C が読む規約 file (repo 内の相対 path)
+# 未記入なら .claude/rules/ の file を読む
+rules:
+#  - docs/coding-rules.md

@@ -1,0 +1,10 @@
+{
+  "name": "specramo",
+  "displayName": "Spec Ramo",
+  "version": "0.2.1",
+  "description": "仕様を PR 単位の Phase に分け、実装者が理解してから一段ずつ進める spec 駆動開発のコマンド集",
+  "author": { "name": "Daichi Hoshina" },
+  "repository": "https://github.com/DaichiHoshina/spec-ramo",
+  "license": "MIT",
+  "keywords": ["spec-driven-development", "design-doc", "pull-request"]
+}

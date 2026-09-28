@@ -1,0 +1,14 @@
+{
+  "name": "specramo",
+  "owner": {
+    "name": "Daichi Hoshina"
+  },
+  "description": "Spec Ramo の配布元。spec 駆動開発の Claude Code plugin を 1 つ提供する",
+  "plugins": [
+    {
+      "name": "specramo",
+      "source": "./",
+      "description": "仕様を PR 単位の Phase に分け、実装者が理解してから一段ずつ進める spec 駆動開発のコマンド集"
+    }
+  ]
+}
