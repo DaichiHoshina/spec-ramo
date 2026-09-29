@@ -49,7 +49,7 @@ method 名・SQL・呼び出し元は既存 code を確かめないと妥当な�
 
 ## Step 0: 省略判定 (最初に行う)
 
-次を全部満たす Phase はPhase 詳細設計を書かず、その旨を 1 行宣言して `Next: /explain <作業計画書 path> --phase <n>` (設計の説明を受けてから `/specramo:implement` へ) を記載して終える。**原則は書かない判断にする**。器があると埋めたくなるが、埋める価値の無い Phase で 1 file 増やすと、作業計画書肥大を場所を変えて繰り返すことになる。
+次を全部満たす Phase はPhase 詳細設計を書かず、その旨を 1 行宣言して `Next: /specramo:explain <作業計画書 path> --phase <n>` (設計の説明を受けてから `/specramo:implement` へ) を記載して終える。**原則は書かない判断にする**。器があると埋めたくなるが、埋める価値の無い Phase で 1 file 増やすと、作業計画書肥大を場所を変えて繰り返すことになる。
 
 - TX 境界 / 排他制御 / SQL の条件に判断の分岐が無い
 - interface を新設しない (既存 interface の内部実装だけを変える)

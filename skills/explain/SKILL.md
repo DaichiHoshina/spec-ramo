@@ -32,7 +32,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/require-config.sh"
 | file path | その file 全体。1,000 行超なら公開 symbol の一覧を示して範囲を 1 問で限定する |
 | symbol 名 | 本体と呼び出し元を grep で集める |
 
-対象を決めたら、本文の前に次の 2 つを確かめる。
+対象を決めたら、本文の前に次の 3 つを確かめる。
 
 1. 対象の author (`git log -1 --format=%an <commit>`) が利用者本人なら、前提知識の段はその author が作成した仕組みを省く
 2. diff の行数 (`git diff --stat`) が 10 行未満なら、`--level` を指定しないときの値を `brief` にする
