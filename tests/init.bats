@@ -10,7 +10,7 @@ setup() {
 
 # dir 以下の全 file の path と hash を並べる (実行前後の比較に使う)
 snapshot() {
-  (cd "$1" && find . -type f -print0 | sort -z | xargs -0 sha256sum; find . -type d | sort)
+  (cd "$1" && find . -type f -print0 | sort -z | xargs -0 cksum; find . -type d | sort)
 }
 
 @test "init: 空の dir に設定 file と成果物の置き場所を作る" {
@@ -38,11 +38,11 @@ snapshot() {
 @test "init: 設定 file だけがあれば、成果物の置き場所だけを作る" {
   mkdir -p "$REPO/.specramo"
   printf 'max_lines: 200\n' > "$REPO/.specramo/config.yml"
-  hash_before="$(sha256sum < "$REPO/.specramo/config.yml")"
+  hash_before="$(cksum < "$REPO/.specramo/config.yml")"
   run bash "$SCRIPT" "$REPO"
   [ "$status" -eq 0 ]
   [ -d "$REPO/.specramo/specs" ]
-  [ "$(sha256sum < "$REPO/.specramo/config.yml")" = "$hash_before" ]
+  [ "$(cksum < "$REPO/.specramo/config.yml")" = "$hash_before" ]
   [ "${lines[0]}" = "作らなかった (すでにある): .specramo/config.yml" ]
   [ "${lines[1]}" = "作った: .specramo/specs/" ]
 }
