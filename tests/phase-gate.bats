@@ -45,6 +45,7 @@ EOF
   printf '%s\n' "$output" | grep -q '^pkg/reader/item.go:1:'
   ! printf '%s\n' "$output" | grep -q 'items_archive'
   ! printf '%s\n' "$output" | grep -qE '_test|migrations'
+  printf '%s\n' "$output" | grep -q '^注: SQL の文字列 (FROM / JOIN) だけを数える'
 }
 
 @test "table-readers: 引数が足りないか table 名に記号があれば usage で exit 2" {

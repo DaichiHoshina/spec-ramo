@@ -66,6 +66,15 @@ PRD から PR までは、次の順に進めます。
 
 5 から 9 を Phase ごとに繰り返します。PR は利用者が作ります。Spec Ramo は PR を作りません。
 
+## 前提
+
+手順と検査 script は、リレーショナル DB を使う Web API のバックエンド開発を想定しています。
+
+- 言語別の開発指針 (`/specramo:review` の観点の 1 つ) は Go と TypeScript だけです。ほかの言語でも使えますが、その観点の review は行われません
+- 設計書の検査は HTTP の status code と、MySQL のロック (`SELECT ... FOR UPDATE`、gap lock) を前提にしています。PostgreSQL では同じロックでも挙動が違うので、指摘を読み替えてください
+- table を読む箇所の数え上げ (`scripts/table-readers.sh`) は SQL の文字列 (`FROM` / `JOIN`) だけを数えます。ORM の method で読む箇所は数えないので、ORM を使う repo では呼び出し元を別に調べてください
+- CLI、バッチだけの変更、フロントエンドだけの変更では、設計書の検査の一部 (status code の数など) が当てはまりません
+
 ## 使わない場面
 
 Spec Ramo は、PR が 2 本以上に分かれる大きさの開発を対象にしています。typo の修正や 1 file の小さな修正は、PRD から始めずに直接実装してください。

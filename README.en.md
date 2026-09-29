@@ -67,6 +67,15 @@ Go from PRD to PR in this order:
 
 Repeat steps 5 to 9 for each Phase. You open the PRs yourself; Spec Ramo never opens a PR.
 
+## Assumptions
+
+The workflow and check scripts assume backend development of a web API backed by a relational database.
+
+- Language guidelines (one of the `/specramo:review` perspectives) exist only for Go and TypeScript. Other languages work, but that perspective is skipped
+- The design checks assume HTTP status codes and MySQL locking (`SELECT ... FOR UPDATE`, gap locks). PostgreSQL locks behave differently, so adjust the findings accordingly
+- The table-reader count (`scripts/table-readers.sh`) matches SQL strings (`FROM` / `JOIN`) only. It does not count reads through ORM methods, so check callers separately in ORM-based repos
+- For CLI-only, batch-only, or frontend-only changes, some design checks (such as counting status codes) do not apply
+
 ## When not to use it
 
 Spec Ramo targets work large enough to need two or more PRs. For a typo or a small single-file fix, implement it directly without starting from a PRD.

@@ -20,4 +20,5 @@ if [ -n "$hits" ]; then
 else
   count=0
 fi
+echo "注: SQL の文字列 (FROM / JOIN) だけを数える。ORM の method (where / find など) で読む箇所は含まないので、ORM を使う repo では呼び出し元を別に調べる"
 echo "合計 ${count} 件"
