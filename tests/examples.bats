@@ -9,7 +9,7 @@ setup() {
 }
 
 @test "examples: 成果物一式と README がそろっている" {
-  for f in prd.md design.md plan.md plan-phase1.md README.md; do
+  for f in prd.md tech-notes.md design.md plan.md plan-phase1.md README.md; do
     [ -f "$EX/$f" ] || { echo "無い: $f"; return 1; }
   done
 }
