@@ -1,10 +1,11 @@
 # サンプル: 期限切れの TODO の一覧
 
-小さな TODO の HTTP API (Go、メモリに保存) に、`GET /todos/overdue` で期限切れの TODO を一覧する機能を追加する題材です。この dir の 4 本は、Spec Ramo のコマンドを実際に実行して作った成果物で、手では整えていません。
+小さな TODO の HTTP API (Go、メモリに保存) に、`GET /todos/overdue` で期限切れの TODO を一覧する機能を追加する題材です。この dir の file は、Spec Ramo のコマンドを実際に実行して作った成果物です。ただし PRD と技術メモは、PRD の雛形を改めたときに、内容を変えずに新しい節の構成へ手で書き直しました。
 
 | file | 作ったコマンド | 内容 |
 |---|---|---|
 | [prd.md](prd.md) | `/specramo:prd` | 要求。期限なしと完了済みを含めないこと、判定は現在時刻と比べること |
+| [tech-notes.md](tech-notes.md) | `/specramo:prd` | PRD に記載しない技術メモ。現在の code の位置と、実装で注意する点 |
 | [design.md](design.md) | `/specramo:design` | 受け入れ条件の表で振る舞いを固定した Design Doc |
 | [plan.md](plan.md) | `/specramo:plan` | 2 つの Phase (期限切れの判定 / 一覧の endpoint) に分けた作業計画書 |
 | [plan-phase1.md](plan-phase1.md) | `/specramo:phase-design` | Phase 1 の実装方法 |
