@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Phase 詳細設計を script で判定する。/specramo:phase-design の Step 4 から呼ぶ。
-# 判定 1 項目: table の行の意味が変わる Phase (論理削除 / deleted_at) に「table を読む query」の節があり、
-#              節に記載した「合計 n 件」が、table-readers.sh で改めて数えた件数と一致する
+# 判定 2 項目: table の行の意味が変わる Phase (論理削除 / deleted_at) に「table を読む query」の節があり、
+#   (1) 節に記載した「合計 n 件」が、table-readers.sh で改めて数えた件数と一致する
+#   (2) query の件数以上の「複数行の扱い:」の行がある (値は 最新 1 件だけを対象にする / 全行を対象にする / 1 件以下が保証される)
 # 行の意味が変わると、条件の追加が必要な query が別の package や管理画面にもある。
 # 調べる手順を文章で記載するだけでは実行されないことがあったので、件数の一致で調べたことを確かめる。
 # 出力: 1 行 1 判定 (PASS / FAIL)。FAIL が 1 つでもあれば exit 1
@@ -47,6 +48,18 @@ for t in $tables; do
   actual=$(bash "$(dirname "$0")/table-readers.sh" "$repo" "$t" | tail -1 | grep -oE '[0-9]+')
   if [ "$written" = "$actual" ]; then
     report PASS table-readers "${t}: 合計 ${actual} 件 (改めて数えた件数と一致)"
+    # 件数が合っていても、query ごとに複数行の扱いを決めたかは分からない。
+    # 行の意味が変わると、同じ key で複数行を返す query が現れる。全件を列挙するだけでは、
+    # 最新の 1 件だけを対象にする条件を必要とする query の判断が書かれず、その条件が実装に反映されない
+    decided=$(printf '%s\n' "$body" | awk -v t="$t" '
+      /^table: / { on = (index($0, t) > 0); next }
+      on && /^[-* ]*複数行の扱い: *(最新 1 件だけを対象にする|全行を対象にする|1 件以下が保証される)/ { n++ }
+      END { print n + 0 }')
+    if [ "$decided" -ge "$actual" ]; then
+      report PASS table-readers-multiplicity "${t}: 複数行の扱いを ${decided} 件記載 (query ${actual} 件)"
+    else
+      report FAIL table-readers-multiplicity "${t}: 複数行の扱いが ${decided} 件、query は ${actual} 件 (query ごとに「複数行の扱い: 最新 1 件だけを対象にする / 全行を対象にする / 1 件以下が保証される」と根拠を記載する)"
+    fi
   else
     report FAIL table-readers "${t}: 節は ${written} 件、改めて数えると ${actual} 件"
   fi

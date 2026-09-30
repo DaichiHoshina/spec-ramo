@@ -39,7 +39,7 @@
 
 ## 6 項目の書き方
 
-- **対象**: 触る層とその責務を、設計の語彙で記述する。repo の層名 (Entity / Model / Reader / Writer / Command / Usecase / Handler 等) と責務 1 行の形にする。
+- **対象**: 触る層とその責務を、設計の語彙で記述する。repo が宣言する層名 (無ければ実在する構成単位の名前) と責務 1 行の形にする。
   - **file path は書かない**: 「`pkg/reader/order_delivery_option.go`: 単件 / 複数の取得」でなく「Reader (配送オプションの選択): 論理削除された選択を除いて返す」と記載する
   - **責務は対象を目的語にする**: 「何を返すか / 何を保つか」で記述する。作業の手順 (「参照を限定する」「条件を追加する」) や保存の形 (「有効な行」「列」「JOIN」) を主語にしない。前者は `/specramo:implement` が決める作業、後者は `/specramo:phase-design` が決める実装形で、どちらも読み手が Design Doc の受け入れ条件と対応づけられない
   - Design Doc の Data Schema にある table 名と column 名は、その語のまま記載してよい
@@ -53,14 +53,14 @@
 
 - **Read/Write**: この Phase で必要になる Query / Command を、責務 1 行で列挙する。
   - 対象を目的語にする: 「論理削除された配送オプションの選択を除いた単件取得と一覧取得」の形で書き、「単件取得の SQL に条件を追加する」のような作業の手順にしない
-  - method 名・シグネチャ・SQL は書かず、`/specramo:phase-design` が Phase ごとに決める
+  - 操作名・シグネチャ・問い合わせは書かず、`/specramo:phase-design` が Phase ごとに決める
   - Design Doc の Implementation Surface に無い責務はここで新規と明記する
   - 既存の呼び出しだけで完結する Phase は「新規なし。既存の <責務> を呼ぶ」と書く
 
 - **対象外**: 隣接するが次 Phase へ送るもの。空にしない
 
 - **完了条件**: test 名 / lint / 特定 API の response のように command で判定できる形。
-  - build / test / lint は変更 package に限定して書く (`go build ./pkg/model/...` のように)。repo 全体の `./...` は hook が止めるか時間がかかる
+  - build / test / lint は変更した構成単位に限定して書く。repo 全体を対象にすると時間がかかる
   - 「異常系がテストされている」で止めない
   - spec 型なら担当する受け入れ条件を文の引用で列挙し、各条件をどの test で確かめるかをここで決めて書く
   - **引用は Design Doc の文言をそのまま転記し、backtick で囲む**。NG 用語辞書の検査は backtick の内側を対象外にするので、上流の語を言い換えずに転記できる
@@ -75,7 +75,7 @@
 
 ## Dead code first 雛形 (層で積む慣習の repo)
 
-層で積む慣習で、かつ各 PR が main へ直接 merge され、既存挙動を変えない PR に印 (`[確認不要]` 等) を付ける慣習があれば、次の雛形を基本にする。
+層で積む慣習で、かつ各 PR が main へ直接 merge され、既存挙動を変えない PR に repo の印を付ける慣習があれば、次の雛形を基本にする。
 
 - 呼び出し元のない実装 (model / repository / usecase / 公開関数) を「既存挙動: 変わらない」で先に並べる
 - 配線 PR (flag OFF) と有効化 PR (flag を true にする 1 行) を最後に置く

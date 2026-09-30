@@ -14,7 +14,7 @@
 
 ## 新規 entity の登録経路
 
-- 新しい entity を writer で insert / update する Phase は、ORM の table 登録 file を対象に含める
+- 新しい保存先へ書き込む Phase は、永続化層で保存先を登録する file を対象に含める
 - 登録の file は、repo の登録経路を 1 度だけ grep で確かめて特定する
 
 ## 生成物 (swagger 等) の差分
@@ -35,9 +35,9 @@
 - repo が特定できない画面は【未確認】で先送りせず、候補 repo と「見つからなかった grep 語」を記載する
 - 画面の Phase の完了条件は、その repo の test の書き方 (file 名の規約、実行 command) を 1 つ参照して test 名で記載し、「手動で確認する」だけで終えない
 
-## Design Doc と code の食い違い
+## Design Doc と code の不一致
 
-Design Doc の記述と code が食い違う点は、次の 2 つに分けて扱う。どちらでも Design Doc 側を明記せずに読み替えない。
+Design Doc の記述と code が一致しない点は、次の 2 つに分けて扱う。どちらでも Design Doc 側を明記せずに読み替えない。
 
 - **DD へ戻す**: Design Doc の記述そのものが実物と違う (endpoint の形や存在、条件どうしの矛盾)、または Implementation Surface に行が足りない (決定にある flag や endpoint が表に無い、同じ商品一覧を返す別 endpoint がある)。表の不足は「Design Doc との差分」で進めない
   - 判定表: endpoint / field / flag / table / 画面の不足や形の違い = DD へ戻す

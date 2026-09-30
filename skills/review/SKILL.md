@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 > **Goal**: `/specramo:implement` が実装した Phase n の差分を観点ごとに別のエージェントで review し、利用者が `/specramo:explain` で差分を理解する前に、修正するものを確定させる。結果の Critical と Warning の合計で Phase の状態を進める。
 
-**Position**: `/specramo:implement` (Phase の実装) の後にこの skill を当てる。修正するものが無くなったら `/specramo:explain` (code の説明) から PR へ進む。
+**Position**: `/specramo:implement` (Phase の実装) の後にこの skill を適用する。修正するものが無くなったら `/specramo:explain` (code の説明) から PR へ進む。
 
 ## Step 0: 前提確認
 
@@ -53,8 +53,8 @@ C が「読めなかった file」を返したときは、C の結果を採ら�
 
 ## Step 4: 統合と出力
 
-- 同じ `file:line` の指摘は 1 件にまとめ、どのエージェントが出したかを添える。重大度が食い違うときは高い方を採る
-- migration への指摘は、`/specramo:implement` Step 3 と同じ使い捨ての DB で、指摘した箇所と修正案の両方を実行して確かめてから出力する。実行できなかったときは、指摘と修正案に「未検証」と添える。修正案も DB で実行するまで正しいか分からず、確かめない修正案は別のエラーになりうる
+- 同じ `file:line` の指摘は 1 件にまとめ、どのエージェントが出したかを添える。重大度が一致しないときは高い方を採る
+- 保存データの構造変更への指摘は、`/specramo:implement` Step 3 と同じ使い捨ての環境で、指摘した箇所と修正案の両方を実行して確かめてから出力する。実行できなかったときは、指摘と修正案に「未検証」と添える。修正案も実行するまで正しいか分からず、確かめない修正案は別のエラーになりうる
 - test の結果を確かめるときは、`/specramo:implement` の完了報告の「検証」行にある command と環境変数で実行する。その行が無いか、同じ条件で実行できなかったときは「未検証」と添える
 - 出力の冒頭に次の 3 行を置き、`${CLAUDE_PLUGIN_ROOT}/skills/review/perspectives.md` の出力の形で Critical と Warning を並べる
 
