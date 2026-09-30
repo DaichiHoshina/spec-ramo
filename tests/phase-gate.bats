@@ -21,7 +21,7 @@ EOF
   DOC="$REPO/.specramo/specs/f/plan-phase1.md"
 }
 
-write_doc() { # $1 = 節に記載する件数
+write_doc() { # $1 = 節に記載する件数、$2 = 「複数行の扱い:」の行数 (省略時 2)
   cat > "$DOC" <<EOF
 # Phase 詳細設計
 
@@ -35,6 +35,8 @@ table: \`items\`
 pkg/reader/item.go:1: q := "SELECT id FROM items WHERE order_id = ?"
 合計 $1 件
 EOF
+  local i
+  for i in $(seq 1 "${2:-2}"); do printf -- '- 複数行の扱い: 1 件以下が保証される (id で引く)\n' >> "$DOC"; done
 }
 
 @test "table-readers: FROM と JOIN の行を数え、test と migration と別名の table を除く" {
@@ -67,6 +69,23 @@ EOF
   run bash "$GATE" "$DOC"
   [ "$status" -eq 0 ]
   printf '%s\n' "$output" | grep -q '^PASS  table-readers  items: 合計 2 件'
+  printf '%s\n' "$output" | grep -q '^PASS  table-readers-multiplicity  items: 複数行の扱いを 2 件記載'
+}
+
+@test "phase-gate: 複数行の扱いの行が query の件数より少なければ FAIL" {
+  write_doc 2 1
+  run bash "$GATE" "$DOC"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^PASS  table-readers  items: 合計 2 件'
+  printf '%s\n' "$output" | grep -q '^FAIL  table-readers-multiplicity  items: 複数行の扱いが 1 件、query は 2 件'
+}
+
+@test "phase-gate: 複数行の扱いの値が 3 つのどれでもなければ数えない" {
+  write_doc 2 2
+  sed -i.bak 's/1 件以下が保証される (id/未定 (id/' "$DOC"
+  run bash "$GATE" "$DOC"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  table-readers-multiplicity  items: 複数行の扱いが 0 件'
 }
 
 @test "phase-gate: 節の件数が実物より少なければ FAIL" {

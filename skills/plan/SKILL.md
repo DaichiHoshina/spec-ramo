@@ -14,7 +14,7 @@ disable-model-invocation: true
 |---|---|
 | `/specramo:design` | 実装から逆算した仕様書型 Design Doc (受け入れ条件の表と決定事項) を作る。この command の入力 |
 | `/specramo:plan` | Design Doc を実装単位 (作業計画書) に分け、PR 構成と完了条件を決める。責務までを記載し、実装形は記載しない |
-| `/specramo:phase-design` | Phase n の実装形 (method / interface / SQL 方針 / TX / テスト観点) を、既存 code の調査から決める。単純な Phase では省く |
+| `/specramo:phase-design` | Phase n の実装形 (公開する型と操作 / 問い合わせの方針 / TX / テスト観点) を、既存 code の調査から決める。単純な Phase では省く |
 | `/specramo:implement` | 作業計画書の Phase n だけを実装する |
 
 Design Doc を作る線引き (API が増える / DB が変わる / 画面が 2 つ以上変わる) に当たらない小さな変更は、Design Doc なしで要件の 1 文から直接この command に入ってよい。
@@ -37,11 +37,11 @@ Design Doc を作る線引き (API が増える / DB が変わる / 画面が 2 
 
 ## Step 1: 入力の特定
 
-`--update` (または `作業計画書を直して` `反映して` と既存の作業計画書) のときは全体を再生成せず、影響する Phase だけを Edit する。運用の詳細は同梱の `phase-anatomy.md` 「`--update` の運用」。
+`--update` (または `作業計画書を直して` `反映して` と既存の作業計画書) のときは全体を再生成せず、影響する Phase だけを Edit する。plugin を更新した後の既存の作業計画書も再生成せず、作業計画書検査 (Step 4) を適用して FAIL と WARN の項目だけを Edit する。運用の詳細は同梱の `phase-anatomy.md` 「`--update` の運用」。
 
 1. Design Doc を Read する。「受け入れ条件」の表を最初に取り、Phase 分割の材料にする。条件は ID を保持しないので、先頭 20 字程度を引用して指す。各条件をどの test (API test / unit test / 手動) で確かめるかは Design Doc に無いので、この command が Phase の完了条件として決める
 2. Phase の候補は Design Doc の Implementation Surface (API / Read / Write / 画面の表) から取り、各行をどの Phase に割り当てるかをこの command で決める。
-   - method 名・SQL・呼び出し元はここで決めず、`/specramo:phase-design` が Phase ごとに決める。method の存在は Design Doc が、どの Phase で作るかは作業計画書が、実装形は Phase 詳細設計が決める
+   - 操作名・問い合わせ・呼び出し元はここで決めず、`/specramo:phase-design` が Phase ごとに決める。method の存在は Design Doc が、どの Phase で作るかは作業計画書が、実装形は Phase 詳細設計が決める
    - 500 行を超える Design Doc は全文を読まず、見出しの一覧から範囲・目標・非目標・API の一覧・DB 設計・UI の変更・リリース計画・既存の不具合の修正の節だけを読む
    - 1 文の要件なら、それを「目的」に置き、Design Doc の欄は「未作成」と記載する
 3. 雛形の節を勝手に減らさず、記載することが無い節は「該当なし」1 行にする。進捗の記録のように実装前には埋められない節は、見出しと「実装中に記入」の 1 行だけにする
@@ -52,7 +52,7 @@ Design Doc を作る線引き (API が増える / DB が変わる / 画面が 2 
 
 Design Doc が無い 1 文の要件で入ったときは、他の手順より先に**要件がすでに実装されていないか**を確かめる。
 
-1. 要件に登場する名詞 (script 名 / 機能名 / table 名 / command 名) を語にして `git grep -l` と `ls` を実行する
+1. 要件に登場する名詞 (script 名 / 機能名 / 保存先の名前 / command 名) を語にして `git grep -l` と `ls` を実行する
 2. 実在したものは新規作成の Phase にせず、「既存実装の確認」の節に file 名と行数と test の有無を記載する。Phase は残りの差分だけで分ける
 
 Design Doc に記載された API / Query / Command / 画面ごとに、既存 code の置き場所を検索し (Serena などの code 解析 tool があれば使い、無ければ grep)、対象の file と test の file を並べる。**並べたら、1 件ずつ production の呼び出し経路から到達するかを確かめる**。語句の検索に一致するだけの箇所 (production から呼ばれない method や、別機能の同名の処理) を対象に含めると、到達しない code へ条件を追加する Phase を作ることになる。到達しない箇所は対象から除き、その理由を 1 行記載する。
@@ -70,14 +70,14 @@ Design Doc に記載された API / Query / Command / 画面ごとに、既存 c
 | マージ順序の図 | 実装と merge の順序 | 作業計画書の `マージ順序と依存関係` |
 
 - 列は `| 層 | 名前 | 責務 | 変更 |` の 4 つにする。
-  - `層` は Clean Architecture の層名 (Entity / Usecase / Interface Adapter / Framework & Driver)、`名前` はその層の中の部品名で、1 つの列にまとめない
+  - `層` は repo が宣言する層名、宣言が無い repo は実在する構成単位 (module / package / 画面 / 外部連携 等) の名前、`名前` はその中の部品名で、1 つの列にまとめない
   - `責務` はその部品が今回の機能で担うことを 1 句で記載する
   - `変更` は変更する層に `★ PR #n`、変更しない層に `変更なし` を記載する
-- 行は内側の層 (Entity) から外側の層 (Framework & Driver) の順に上から並べる
+- 行は依存の向きで内側 (業務の中心) から外側 (入出力の境界) の順に上から並べる
 - **行にする層は、作業計画書から実在を確認できた箇所だけにし、推測で補わない**
-- 変更の中身と method 名と SQL は表に含めない (各 PR の `対象` に記載する)
+- 変更の中身と操作名と問い合わせは表に含めない (各 PR の `対象` に記載する)
 
-個別の判定は同梱の `scope-scan.md` を Read する。扱うのは、参照件数と Phase の配置、Data Schema の不変条件、ORM への登録、生成物の差分、test file の実在の確認、画面の repo の特定、Design Doc と code の食い違いの扱いの 7 つ。
+個別の判定は同梱の `scope-scan.md` を Read する。扱うのは、参照件数と Phase の配置、Data Schema の不変条件、永続化層への登録、生成物の差分、test file の実在の確認、画面の repo の特定、Design Doc と code の不一致の扱いの 7 つ。
 
 ## Step 2.5: repo の規約を Phase に当てる
 
@@ -110,10 +110,10 @@ Phase が 3 つ以上になったら、同梱の `purpose-traceability.md` に�
   - Design Doc の範囲に「既存の不具合の修正」が同居していれば、利用者から見える挙動が別なので独立した Phase にし、新機能の Phase より前に置く
   - `--phases <n>` は上限であって目標ではない。意味の単位が n 未満ならそのまま少なく作る
 - **縦切りと層切り**
-  - 分け方は優先順位 3 に当たるので、repo の慣習を先に測って決める。同じ機能領域の直近の merged PR を `gh pr list --search "<issue 番号か機能名>" --state merged` で 5 本程度取得し、title と diff の層を確かめる。層で積む慣習なら層切りを基本にし、慣習が無い repo だけ縦切りを基本にする
-  - 層で積む慣習で dead code first の雛形が使える repo は、同梱の `phase-anatomy.md` の「Dead code first 雛形」を Read する
+  - 分け方は優先順位 3 に当たるので、repo の慣習を先に測って決める。同じ機能領域の直近の merged PR を `gh pr list --search "<issue 番号か機能名>" --state merged` で 5 本程度取得し、title と diff の層 (モデルの層だけ / 業務処理の層と外部接続の層だけ 等) を確かめる。層で追加する慣習なら層切りを基本にし、慣習が無い repo だけ縦切りを基本にする
+  - 層で追加する慣習で dead code first の雛形が使える repo は、同梱の `phase-anatomy.md` の「Dead code first 雛形」を Read する
   - **PR 分割計画の冒頭に flag の判断を 1 行記載する**。雛形を採るなら `- flag: <flag 名> (配線 PR で OFF、有効化 PR で ON)`、採らないなら `- flag: 使わない (理由: <1 文>)`。作業計画書検査の behavior 判定は、「変わる」が 3 本以上のとき、この行の内容で FAIL と WARN を分ける
-  - 縦切りを基本にした場合、model だけ / query だけ / usecase だけ の層切りは、`phase-anatomy.md` 「縦切りを基本にした場合の層切り例外」の条件をすべて満たすときだけ許す
+  - 縦切りを基本にした場合、型だけ / 問い合わせだけ / 処理の本体だけ の層切りは、`phase-anatomy.md` 「縦切りを基本にした場合の層切り例外」の条件をすべて満たすときだけ許す
 - **PR の見出しと記載**
   - **PR の見出しは `### PR #N: [Phase 名]` だけにする**。依存 / branch / 既存挙動 / 想定変更行数は、見出しの直下の箇条書きに 1 項目 1 行で記載する
   - PR の見出し 1 つに、目的 / 対象 / Read/Write / 対象外 / 完了条件 / 実装への指針 / 動作確認手順 を直下に記載する。対象は層と責務の mermaid 図にし、PR 本文の「責務」「変更箇所と責務」へ転記する。各項目の書き方は `phase-anatomy.md`。Phase 名は対象を目的語にした 1 文にする
@@ -140,7 +140,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/spec-gate.sh" <作業計画書の path>
 - 各 Phase の想定変更行数 (test code を除く) が上限を超えない。超える Phase は目的か依存の単位で再分割し、それでも超えるときだけ Step 3 の例外条件を満たす interface の境界で層切りする
 - 各 Phase を単独で merge しても本番が壊れない (壊れるなら Phase の分け方が層になっている)。各 Phase の完了条件が command で判定できる。完了条件に記載した test file が実在するか、「新規作成」と記載されている
 - **完了条件の引用を Design Doc の原文と 1 件ずつ照合する**。数だけでなく文字列が一致しているかを確かめ、一致しない行は原文へ差し替える。要約や言い換えのまま引用の体裁にすると、実装者が期待値を取り違える
-- fixture の行の構成、SQL の句、画面要素の名前が作業計画書に無い。いずれも `/specramo:phase-design` が Phase ごとに決めるので、作業計画書の側は「条件 N 件を区別できる fixture を新規作成する」までにする
+- fixture の行の構成、問い合わせの条件、画面要素の名前が作業計画書に無い。いずれも `/specramo:phase-design` が Phase ごとに決めるので、作業計画書の側は「条件 N 件を区別できる fixture を新規作成する」までにする
 - 完了条件を除く全節に実装形が混入していない (作業計画書検査の `impl-form` が判定する。`impl-form-bare` の WARN の扱いは `phase-anatomy.md` 「impl-form 判定」)
 - 各 Phase の対象外が空でない
 - **同じ実測値を 2 つ以上の節へ転記していない**。複数の節で必要になる値は、正本の節を 1 つ決めて他の節はそこを参照する。**参照する側は値を書き写さず、正本の節名だけを記載する**。合計を記載するときは内訳から再計算した値にする
@@ -158,8 +158,8 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/spec-gate.sh" <作業計画書の path>
 
 作業計画書は、読み手 (実装者と reviewer) が PR ごとの判断に必要な分だけにする。次の 4 種は記載せず、作業計画書の冒頭に「この計画書に記載しないこと」として同じ 4 行を置く。
 
-1. **他の文書に正本がある内容**: Design Doc や issue のコメントにある SQL、リリース当日のチェックリスト、リグレッションテストの項目。関連ドキュメントに link だけを置く
-2. **file path、method 名、SQL、fixture の構成**: `/specramo:phase-design` が Phase ごとに決める
+1. **他の文書に正本がある内容**: Design Doc や issue のコメントにある問い合わせの全文、リリース当日のチェックリスト、リグレッションテストの項目。関連ドキュメントに link だけを置く
+2. **file path、関数・method 名、問い合わせ、fixture の構成**: `/specramo:phase-design` が Phase ごとに決める
 3. **同じ内容の 2 回目以降**: 1 か所だけに記載し、他の節からは節名で参照する
 4. **決定した日付と経緯**: 理由だけを記載する。例外は冒頭の `最終更新:` の 1 行で、`--update` のたびに日時を上書きする
 

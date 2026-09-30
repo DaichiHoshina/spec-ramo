@@ -82,7 +82,7 @@ if [ "$oq_block" -eq 0 ]; then report PASS open-deadline '決める時点 = 作�
 
 # (3) 識別子と HTTP status (warn)
 spec_body=$( { section 'Acceptance Criteria|受け入れ条件'; section "$BEHAVIOR_PAT"; section 'Design Decisions|決定事項'; } )
-ident=$(printf '%s\n' "$spec_body" | grep -cE '`[^`]*(/|\.go|\.vue|\.sql|\.ts)[^`]*`|\b(SELECT|INSERT|UPDATE|DELETE) \b' || true)
+ident=$(printf '%s\n' "$spec_body" | grep -cE '`[^`]*(/|[A-Za-z0-9_]\.[a-z]{2,5}\b)[^`]*`|\b(SELECT|INSERT|UPDATE|DELETE) \b' || true)
 status=$(printf '%s\n' "$spec_body" | grep -cE '(^|[^0-9])(200|201|204|400|401|403|404|409|422|500)([^0-9]|$)' || true)
 if [ "$ident" -eq 0 ]; then report PASS ident 'file path / SQL 0'; else report WARN ident "file path / SQL らしき行 ${ident}"; fi
 if [ "$status" -eq 0 ]; then report PASS http-status 'HTTP status 0'; else report WARN http-status "HTTP status を含む行 ${status} (既存挙動の変更で明示した分は許容)"; fi

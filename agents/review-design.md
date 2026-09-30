@@ -18,11 +18,12 @@ tools: Read, Grep, Glob, Bash
 ## Phase 固有の観点
 
 - **Phase の scope**: 対象外に列挙された file / 振る舞いへの変更は Critical。Phase 詳細設計の変更対象 file に無い変更と、Phase の目的に不要な rename / format / 周辺の書き換えは Warning。
-- **implement の点検表 a-f**: `${CLAUDE_PLUGIN_ROOT}/skills/implement/SKILL.md` の Step 3.5 の表 (参照 0 件の symbol の先出し / magic number の出所 / validation と保存の対称性 / Non-Goals の制約 / NULL 条件と代入の対応 / 同種 field の取りこぼし)。
+- **implement の点検表の全項目**: `${CLAUDE_PLUGIN_ROOT}/skills/implement/SKILL.md` の Step 3.5 の表 (参照 0 件の symbol の先出し / magic number の出所 / validation と保存の対称性 / Non-Goals の制約 / NULL 条件と代入の対応 / 同種 field の取りこぼし / test double の引数照合)。表に項目が増えたら、ここに列挙していない項目も点検する。
 - **実装への指針**: Phase の「実装への指針」に列挙された rule file だけを読み、Phase 固有の観点として当てる。repo の規約全体はエージェント C が担当する。
 - **受け入れ条件**: 作業計画書の「目的と実装の対応」表 (無ければ各 Phase の完了条件) から、この Phase と前の Phase が担当する受け入れ条件を取り、Design Doc の条件文と diff を突き合わせる。
-  - この Phase の担当条件が diff に無い / 一部だけ / 条件文と食い違う場合は Critical
+  - この Phase の担当条件が diff に無い / 一部だけ / 条件文と一致しない場合は Critical
   - 前の Phase の担当条件を、この diff が変えている場合は Critical
+  - Design Doc が画面に表示する文字列として「」で示した列名・ボタン名・文言が、実装に完全一致で存在しない場合は Warning。対象は Design Doc の画面や表示を扱う節と、この Phase の担当条件の文中にある「」に限る (節名や用語の「」は含めない)。`git grep -F '<文字列>'` が 0 件のものを列挙する。設計と実装のどちらを修正するかは利用者が決め、エージェントはどちらも修正しない
   - Design Doc の path が無い作業計画書では、この観点を省いた旨を 1 行返す
 - **命名**: diff で新設した関数名と変数名を `${CLAUDE_PLUGIN_ROOT}/skills/implement/code-quality.md` の「Naming Criteria」と「Naming Shape」で点検する (Warning)。
 

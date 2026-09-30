@@ -135,6 +135,13 @@ EOF
   printf '%s\n' "$output" | grep -q '^WARN  ident'
 }
 
+@test "dd-gate: .go/.ts 以外の拡張子の file 名も ident が WARN" {
+  sedi 's/名前が空ならサーバは拒否する/`update_thing.py` で拒否する/' "$DD"
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q '^WARN  ident'
+}
+
 # 行を挿入する。$1 = この行の後ろへ入れる、$2 = 入れる行を | で区切ったもの
 insert_after() {
   awk -v m="$1" -v ins="$2" '

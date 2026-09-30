@@ -27,9 +27,9 @@ disable-model-invocation: true
 
    ```
    Phase 2 / 4
-   前: Phase 1 Schema
-   NOW: Phase 2 Command
-   次: Phase 3 Usecase
+   前: Phase 1 保存先の追加
+   NOW: Phase 2 登録の処理
+   次: Phase 3 参照の処理
    ```
 
 3. 状態を「実装中」にする。終了コードが 3 (遷移に無い。たとえば PR 作成済み) なら、実装せずにその表示を利用者に示して止まる。終了コードが 2 なら、作業計画書に「Phase の状態」の表か行が無いので、`/specramo:plan` で表を補うよう 1 行報告して止まる。
@@ -38,11 +38,11 @@ disable-model-invocation: true
    bash "${CLAUDE_PLUGIN_ROOT}/scripts/phase-state.sh" set <作業計画書の path> <n> 実装中
    ```
 
-4. Phase 詳細設計 (`/specramo:phase-design` が作成した `plan-phase<n>.md`) を作業計画書と同じ dir で探し、あれば Read して実装形 (interface / method / 契約 / SQL 方針 / TX / テスト観点 / 変更対象 file) をそのまま採用する。
+4. Phase 詳細設計 (`/specramo:phase-design` が作成した `plan-phase<n>.md`) を作業計画書と同じ dir で探し、あれば Read して実装形 (公開する型と操作 / 契約 / 問い合わせの方針 / TX / テスト観点 / 変更対象 file) をそのまま採用する。
    - 冒頭に「無効」と記載された Phase 詳細設計は、作業計画書を更新した後の古い契約なので、file が無いときと同じに扱う
    - 無いときは `/specramo:phase-design` Step 0 の省略判定をこの Phase に当てる。当たるなら作業計画書の 対象 / 完了条件 から実装形を自分で決めてよい
    - **当たらないなら実装へ進まず**、`/specramo:phase-design` を実行するよう 1 行報告して止まる
-   - Phase 詳細設計と実物が食い違ったら実装を進めず、食い違いを 1 行報告して `/specramo:phase-design` へ戻す
+   - Phase 詳細設計と実物が一致しなかったら実装を進めず、不一致を 1 行報告して `/specramo:phase-design` へ戻す
 5. Phase の「実装への指針」に列挙された repo 規範 (rule file) を着手前に Read し、命名 / 型 / 層 / error / test の制約を採用する。
    - 列挙が無ければ、設定 file の `rules` に並べた file (未記入なら repo の `.claude/rules/` の file) から、この Phase の対象に当たるものを Read する。上限は 3 file にする
    - Phase 詳細設計に無い関数名と変数名は、同梱した `code-quality.md` の「Naming Criteria」の 3 基準と「Naming Shape」で付ける。同じ層の先例を grep して多数派の語を使う
@@ -56,16 +56,16 @@ disable-model-invocation: true
 - 1 Phase を 1 つの会話で実装する。Phase をさらに別の作業へ分割しない。
 - 計画書のタスクが Phase の scope を超えると分かったら、そのタスクは実装せず「別 Phase へ送る」と報告に記載する。参照が 10 file を超える rename や nullable 化が典型になる。作業計画書は `/specramo:plan --update` で更新し、この skill は作業計画書の本文を編集しない。
 - 計画書と実物の食い違いを見つけたら、1 行で報告して再分析に戻る。symbol 名が違う場合と、対象外や未列挙の file を変更する必要が発生した場合がこれに当たる。対象に列挙された file が実物に無いときは食い違いでなく新規作成として進め、作成する旨を 1 行で宣言する。
-- 削除や migration や force を含む Phase は、計画書があっても実行前に確認する。ただし migration を local の DB に当てるだけなら確認は不要で、共有 DB を使わない手順を採る。
-- 実装中に既存挙動を変える判断が必要になったら、その場で決めずに `/specramo:design --update` で Design Doc へ記載してから続ける。error 応答の形や、共有 usecase 経由の別入口への制約がこれに当たる。
+- 削除やデータの移行や force を含む Phase は、計画書があっても実行前に確認する。ただし手元の隔離環境に適用するだけなら確認は不要で、共有環境を使わない手順を採る。
+- 実装中に既存挙動を変える判断が必要になったら、その場で決めずに `/specramo:design --update` で Design Doc へ記載してから続ける。error 応答の形や、業務処理の層を共有する別の入口への制約がこれに当たる。
 - 設計や repo 規範の解釈に迷ったら、その部分を実装せずに止まる。迷う場面は、処理の置き場所、層の依存の向き、既存 rule がこの場面に当たるかの 3 つが多い。確かめた内容 / 自分の案 / 迷っている点を 3 行で報告し、利用者が進め方を決めてから続ける。
 
 ## Step 3: 完了条件の実行
 
 - Phase の完了条件に記載された command (test 名 / lint / API response) を改めて実行し、出力と照合する。実行しなかった条件は「未実行」と記載する。
 - 完了条件の command は前面で実行し、background で実行しない。長い command も timeout を延ばして結果を待つ。background で実行すると、非対話の実行では結果を受け取る前に会話が終わり、完了報告と使い捨ての DB の削除が実行されない。
-- lint は変更した package か file だけを対象に実行する。repo 全体の lint は大きな repo では timeout を超える。対象にした範囲は完了報告の「検証」行に記載する。
-- test に必要な環境変数と build tag は、完了報告の「検証」行に command と一緒に記載する。`/specramo:review` はこの行の command で test を再実行する。
+- lint は変更した構成単位 (package / module) か file だけを対象に実行する。repo 全体の lint は大きな repo では timeout を超える。対象にした範囲は完了報告の「検証」行に記載する。
+- test に必要な環境変数と test の実行条件 (tag 等) は、完了報告の「検証」行に command と一緒に記載する。`/specramo:review` はこの行の command で test を再実行する。
 - migration を含む Phase で、共有の DB に適用できないときは、使い捨ての DB を用意する。共有の DB に適用できないのは、他の branch の schema が入っているときや、他の作業と共有しているときになる。使い捨ての DB は、手元の DB server に作る別名の database (`specramo_` で始まる名前) か、repo と同じ version の DB を起動した container (`specramo-` で始まる名前) のどちらかにする。そこで up と down を実行して確かめ、終わったら database か container を削除する。どちらも用意できない環境では「未実行」と記載する。migration の構文や ALGORITHM の指定の誤りは、DB で実行するまで分からない。
 - 変更した symbol 名と file 名で test の dir を grep し、hit した test file を全部実行する。共有 fixture を変えたときは、同じ fixture dir を読む package の test も全部実行する。
 - mutation check として、Phase 詳細設計の「テスト観点」が指す条件を 1 つ壊し、該当の test が fail することを確かめてから元に戻す。
@@ -82,12 +82,12 @@ diff は reviewer が 1 本で採否を決められる状態にする。Phase �
 | # | 点検項目 | 判定基準 |
 |---|---|---|
 | a | 参照 0 件の symbol の先出し | production の参照が 0 件の symbol を先出ししていない (使う Phase の PR へ送るか、PR 本文に使う Phase を記載する) |
-| b | magic number の出所 | DB の error 番号等に出所の comment か定数がある (隣接 file の記述に合わせる) |
-| c | validation と保存の対称性 | validation で分岐した条件と保存の条件が対称になっている (Data Schema の「〜なら NULL」は保存側で保証する) |
+| b | magic number の出所 | 外部仕様の値 (error code / status 等) の出所が comment か定数で分かる (隣接 file の記述に合わせる) |
+| c | validation と保存の対称性 | validation で分岐した条件と保存の条件が対称になっている (validation が特定の条件のときだけ見る値を、保存側が無条件に記載していない。Design Doc が「〜なら空」と決めた値は保存側で保証する) |
 | d | Non-Goals の制約 | Non-Goals で受け入れた制約が code の該当箇所に 1 行 comment で記載されている |
-| e | NULL 条件と代入の対応 | Data Schema の各列の NULL 条件と usecase の代入が列ごとに対応している |
-| f | 同種 field の取りこぼし | repo 規範を当てて型を変えたときは、同じ struct 内の同種 field を全部 grep して取りこぼしが無い |
-| g | mock の引数照合 | 追加・変更した mock の期待で、値が決まる引数を任意一致 (`gomock.Any()` など) で受けていない。期待する値を組み立てて照合する |
+| e | NULL 条件と代入の対応 | Design Doc が決めた各項目の空値の条件と保存処理の代入が項目ごとに対応している |
+| f | 同種 field の取りこぼし | repo 規範を当てて型を変えたときは、同じ型内の同種 field を全部 grep して取りこぼしが無い |
+| g | test double の引数照合 | 追加・変更した test double の期待で、値が決まる引数を任意一致 (any matcher など) で受けていない。期待する値を組み立てて照合する |
 
 ## Step 4: 完了報告と handoff
 
@@ -108,7 +108,7 @@ Next: /specramo:review <機能名> --phase <n>
   - AI が記載した comment が 0 件 (全部書き換えたか削除した)
   - 差分を repo の規約と照らし合わせた (処理を置く場所と層の依存の向き)
   - 参考にした既存実装を 1 つ以上 PR 本文に記載する
-  - `/specramo:explain` の説明と自分の理解が食い違った箇所が 0 件
+  - `/specramo:explain` の説明と自分の理解が一致しなかった箇所が 0 件 (不一致は PR 前に解消する)
   - PR 説明文を自分の言葉で書き換えた。diff の各変更について「なぜ必要か」を一言で言える
 
 ## 守ること
