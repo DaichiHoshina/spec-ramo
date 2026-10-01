@@ -709,3 +709,45 @@ EOF2
   [ "$status" -eq 0 ]
   printf '%s\n' "$output" | grep -q '^WARN  flow-mark  処理フローの番号付き手順'
 }
+
+@test "spec-gate: 品質基準が「実装中に記入」の 1 行だけなら prefill が PASS" {
+  cat >> "$SPEC" <<'EOF2'
+
+## 品質基準
+
+実装中に記入
+EOF2
+  run bash "$SCRIPT" "$SPEC"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q '^PASS  prefill'
+}
+
+@test "spec-gate: 品質基準に checkbox が 3 行あると prefill が WARN で exit 0" {
+  cat >> "$SPEC" <<'EOF2'
+
+## 品質基準
+
+- [ ] test が通る
+- [ ] lint が 0 件
+- [ ] 型 error が 0 件
+EOF2
+  run bash "$SCRIPT" "$SPEC"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep '^WARN  prefill' | grep -q '品質基準: 3 行'
+}
+
+@test "spec-gate: 品質基準の節が無ければ prefill の行を出力しない" {
+  run bash "$SCRIPT" "$SPEC"
+  [ "$status" -eq 0 ]
+  ! printf '%s\n' "$output" | grep -q 'prefill'
+}
+
+@test "spec-gate: template の条件付き項目があると template-leftover が WARN" {
+  cat >> "$SPEC" <<'EOF2'
+
+- [ ] パフォーマンス基準を満たす（該当する場合）
+EOF2
+  run bash "$SCRIPT" "$SPEC"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep '^WARN  template-leftover' | grep -q '1 行'
+}

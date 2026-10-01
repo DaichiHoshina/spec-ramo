@@ -9,6 +9,8 @@
 #                 (雛形を採ったかは「- flag:」の行で見分ける。判定できないときは WARN)
 #                 (対象を層と責務でなく file path で書いていると WARN の abstraction で一覧にする)
 #                 (影響範囲に Change Map の節が無いか表でないと WARN の change-map)
+#                 (品質基準の節が 2 行以上で埋まっていると WARN の prefill)
+#                 (template の条件付き項目「該当する場合 / 必要に応じて」が消されずにあると WARN の template-leftover)
 # 出力: 1 行 1 判定 (PASS / FAIL / WARN)。FAIL が 1 つでもあれば exit 1 (WARN は exit に影響しない)
 set -u
 . "$(dirname "$0")/lib/locale.sh"
@@ -197,6 +199,28 @@ if [ -n "$flow" ]; then
   else
     report PASS flow-mark '処理フローの変更手順に印と担当 PR あり'
   fi
+fi
+
+# 品質基準は実装前には埋められないので、見出しと「実装中に記入」の 1 行だけにする (/specramo:plan Step 1)。
+# 品質基準が 11 行ある作業計画書 (651 行) が全 PASS だった実例があるため、行数で検出する。
+# 進捗記録 / 振り返り は実装中に正当な行が増え、--update 時の spec-gate で WARN になるので判定しない
+prefill=$(awk '
+  /^## +品質基準/ { on = 1; found = 1; next }
+  /^## / { if (on) exit }
+  on && NF { n++ }
+  END { if (found) print n + 0 }
+' "$SPEC")
+if [ -n "$prefill" ]; then
+  if [ "$prefill" -ge 2 ]; then
+    report WARN prefill "実装前に埋められない節が埋まっている (品質基準: ${prefill} 行)。見出しと「実装中に記入」の 1 行にする (/specramo:plan Step 1)"
+  else
+    report PASS prefill '実装前に埋められない節は 1 行'
+  fi
+fi
+
+leftover=$(grep -cE '^- \[ \].*(該当する場合|必要に応じて)' "$SPEC" || true)
+if [ "$leftover" -ge 1 ]; then
+  report WARN template-leftover "template の条件付き項目 ${leftover} 行 (該当する場合 / 必要に応じて)。該当しないなら消し、該当するなら条件を外して具体に記載する (/specramo:plan Step 1)"
 fi
 
 exit $fail
