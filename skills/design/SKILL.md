@@ -20,7 +20,7 @@ disable-model-invocation: true
 
 判定基準は「それが変わったとき利用者から見える動きが変わるか」。関数名や処理の分け方が変わっても見える動きが同じなら Design Doc の外側になる。ただし **method の「存在」は Design Doc、どの Phase で作るかは作業計画書、method の「実装形」はPhase 詳細設計**。「配送手続き中の注文が指定の配送オプションを使っているか判定する Read が必要」までは Design Doc に記載し、その method 名・SQL・呼び出し元は `/specramo:phase-design` が記載する。Design Doc に PR1 / PR2 のような分割は記載しない。
 
-**Position**: 要件の `/specramo:prd`、仕様のこの command、Phase = PR 分割の `/specramo:plan`、Phase n の実装方法の `/specramo:phase-design` (省略可)、Phase 実装の `/specramo:implement`、差分の理解の `/specramo:explain` の順に進む。
+**Position**: 要件の `/specramo:prd`、仕様のこの command、Phase = PR 分割の `/specramo:plan`、Phase n の実装方法の `/specramo:phase-design` (省略可)、設計の説明の `/specramo:explain`、Phase 実装の `/specramo:implement`、Phase の review の `/specramo:review`、code の説明の `/specramo:explain` の順に進む。
 
 > この command は大きい開発 (API が増える / DB が変わる / 画面が 2 つ以上変わる) でだけ使う。小さな変更は Design Doc を作らずに直接実装する。
 
