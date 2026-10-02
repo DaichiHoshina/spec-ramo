@@ -55,19 +55,19 @@ disable-model-invocation: true
 
 - 1 Phase を 1 つの会話で実装する。Phase をさらに別の作業へ分割しない。
 - 計画書のタスクが Phase の scope を超えると分かったら、そのタスクは実装せず「別 Phase へ送る」と報告に記載する。参照が 10 file を超える rename や nullable 化が典型になる。作業計画書は `/specramo:plan --update` で更新し、この skill は作業計画書の本文を編集しない。
-- 計画書と実物の食い違いを見つけたら、1 行で報告して再分析に戻る。symbol 名が違う場合と、対象外や未列挙の file を変更する必要が発生した場合がこれに当たる。対象に列挙された file が実物に無いときは食い違いでなく新規作成として進め、作成する旨を 1 行で宣言する。
-- 削除やデータの移行や force を含む Phase は、計画書があっても実行前に確認する。ただし手元の隔離環境に適用するだけなら確認は不要で、共有環境を使わない手順を採る。
+- 計画書と実物の不一致を見つけたら、1 行で報告して再分析に戻る。symbol 名が違う場合と、対象外や未列挙の file を変更する必要が発生した場合がこれに当たる。対象に列挙された file が実物に無いときは不一致でなく新規作成として進め、作成する旨を 1 行で宣言する。
+- 削除やデータの移行や強制 push を含む Phase は、計画書があっても実行前に確認する。ただし手元の隔離環境に適用するだけなら確認は不要で、共有環境を使わない手順を採る。
 - 実装中に既存挙動を変える判断が必要になったら、その場で決めずに `/specramo:design --update` で Design Doc へ記載してから続ける。error 応答の形や、業務処理の層を共有する別の入口への制約がこれに当たる。
 - 設計や repo 規範の解釈に迷ったら、その部分を実装せずに止まる。迷う場面は、処理の置き場所、層の依存の向き、既存 rule がこの場面に当たるかの 3 つが多い。確かめた内容 / 自分の案 / 迷っている点を 3 行で報告し、利用者が進め方を決めてから続ける。
 
 ## Step 3: 完了条件の実行
 
 - Phase の完了条件に記載された command (test 名 / lint / API response) を改めて実行し、出力と照合する。実行しなかった条件は「未実行」と記載する。
-- 完了条件の command は前面で実行し、background で実行しない。長い command も timeout を延ばして結果を待つ。background で実行すると、非対話の実行では結果を受け取る前に会話が終わり、完了報告と使い捨ての DB の削除が実行されない。
+- 完了条件の command は前面で実行し、バックグラウンドで実行しない。長い command も timeout を延ばして結果を待つ。バックグラウンドで実行すると、非対話の実行では結果を受け取る前に会話が終わり、完了報告と使い捨ての DB の削除が実行されない。
 - lint は変更した構成単位 (package / module) か file だけを対象に実行する。repo 全体の lint は大きな repo では timeout を超える。対象にした範囲は完了報告の「検証」行に記載する。
 - test に必要な環境変数と test の実行条件 (tag 等) は、完了報告の「検証」行に command と一緒に記載する。`/specramo:review` はこの行の command で test を再実行する。
 - migration を含む Phase で、共有の DB に適用できないときは、使い捨ての DB を用意する。共有の DB に適用できないのは、他の branch の schema が入っているときや、他の作業と共有しているときになる。使い捨ての DB は、手元の DB server に作る別名の database (`specramo_` で始まる名前) か、repo と同じ version の DB を起動した container (`specramo-` で始まる名前) のどちらかにする。そこで up と down を実行して確かめ、終わったら database か container を削除する。どちらも用意できない環境では「未実行」と記載する。migration の構文や ALGORITHM の指定の誤りは、DB で実行するまで分からない。
-- 変更した symbol 名と file 名で test の dir を grep し、hit した test file を全部実行する。共有 fixture を変えたときは、同じ fixture dir を読む package の test も全部実行する。
+- 変更した symbol 名と file 名で test の dir を grep し、該当した test file を全部実行する。共有 fixture を変えたときは、同じ fixture dir を読む package の test も全部実行する。
 - mutation check として、Phase 詳細設計の「テスト観点」が指す条件を 1 つ壊し、該当の test が fail することを確かめてから元に戻す。
   - 復元は、壊す前の file をコピーしておくか逆置換で行う
   - `git checkout -- <file>` は未 commit の修正まで消すので、commit 済みの file にだけ使う
@@ -86,7 +86,7 @@ diff は reviewer が 1 本で採否を決められる状態にする。Phase �
 | c | validation と保存の対称性 | validation で分岐した条件と保存の条件が対称になっている (validation が特定の条件のときだけ見る値を、保存側が無条件に記載していない。Design Doc が「〜なら空」と決めた値は保存側で保証する) |
 | d | Non-Goals の制約 | Non-Goals で受け入れた制約が code の該当箇所に 1 行 comment で記載されている |
 | e | NULL 条件と代入の対応 | Design Doc が決めた各項目の空値の条件と保存処理の代入が項目ごとに対応している |
-| f | 同種 field の取りこぼし | repo 規範を当てて型を変えたときは、同じ型内の同種 field を全部 grep して取りこぼしが無い |
+| f | 同種 field の処理し忘れ | repo 規範を適用して型を変えたときは、同じ型内の同種 field を全部 grep して抜けが無い |
 | g | test double の引数照合 | 追加・変更した test double の期待で、値が決まる引数を任意一致 (any matcher など) で受けていない。期待する値を組み立てて照合する |
 
 ## Step 4: 完了報告と handoff

@@ -28,7 +28,7 @@
 - 冒頭の日付の行 (作成日 等) の直下に `最終更新: <YYYY-MM-DD HH:MM> (<変えた内容 1 句>)` を 1 行置く。既にあれば値を上書きし、行を増やさない。時刻は `date '+%Y-%m-%d %H:%M'` で取る
 - 入口判定 (未決 Qn) は再実行して結果を入口判定の節に書き換える
 - 「Design Doc との差分」は DD に書かれた項目を消す
-- 表の cell は prettier の padding で文字列一致が成立しないので、行の key (PR 名 / Phase 名) で当てるか Edit 後に prettier を改めてかける
+- 表の cell は prettier の padding で文字列一致が成立しないので、行の key (PR 名 / Phase 名) で照合するか Edit 後に prettier を改めてかける
 - 影響する Phase に `<作業計画書の basename>-phase<n>.md` が既にあれば、その file の冒頭へ「無効 (作業計画書更新後。`/specramo:phase-design` で改めて作成する)」と 1 行記載し、本文は書き換えない。この 1 行が無いと `/specramo:implement` が更新前の契約をそのまま実装する
 
 ## PR 見出しと節構成
@@ -73,9 +73,9 @@
 
 - **動作確認手順**
 
-## Dead code first 雛形 (層で積む慣習の repo)
+## Dead code first 雛形 (層ごとに順に作る慣習の repo)
 
-層で積む慣習で、かつ各 PR が main へ直接 merge され、既存挙動を変えない PR に repo の印を付ける慣習があれば、次の雛形を基本にする。
+層ごとに順に作る慣習で、かつ各 PR が main へ直接 merge され、既存挙動を変えない PR に repo の印を付ける慣習があれば、次の雛形を基本にする。
 
 - 呼び出し元のない実装 (model / repository / usecase / 公開関数) を「既存挙動: 変わらない」で先に並べる
 - 配線 PR (flag OFF) と有効化 PR (flag を true にする 1 行) を最後に置く

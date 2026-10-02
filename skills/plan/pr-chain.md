@@ -18,7 +18,7 @@
 
 ## 後続の PR に送る symbol
 
-上流の PR で「後続の PR で定義する」と決めた symbol (error の定数 / rename / helper) が、後続の PR に届かないまま最後の PR で未定義になる事故がある。PR 単体の diff レビューでは検知できない。
+上流の PR で「後続の PR で定義する」と決めた symbol (error の定数 / rename / helper) が、後続の PR に反映されないまま最後の PR で未定義になる事故がある。PR 単体の diff レビューでは検知できない。
 
 - 上流の PR の本文に「後続の PR 用に先出しする symbol」の節を置き、symbol 名と想定する置き場所を明記する
 - 上流の PR を merge したら、後続の PR の base branch を実際に checkout して build が成功することを確かめる
@@ -27,7 +27,7 @@
 
 ## 責務の契約を分割前に決める
 
-writer 層 / usecase 層 / adapter 層のどこが error の変換を担うかを、PR を分ける前に決める。決めないまま分けると、「writer 側の実装は後続の PR、usecase 側は変換後の error を参照済み」のような食い違いで build が壊れる。
+writer 層 / usecase 層 / adapter 層のどこが error の変換を担うかを、PR を分ける前に決める。決めないまま分けると、「writer 側の実装は後続の PR、usecase 側は変換後の error を参照済み」のような不一致で build が失敗する。
 
 ## 途中の PR を統合するとき
 
