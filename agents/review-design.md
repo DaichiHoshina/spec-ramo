@@ -12,7 +12,7 @@ tools: Read, Grep, Glob, Bash
 
 1. `${CLAUDE_PLUGIN_ROOT}/skills/review/perspectives.md` を Read する。汎用 12 観点、重大度の付け方、出力の形はこの file に従う。
 2. 作業計画書の Phase n の 対象 / 対象外 / 完了条件 / 実装への指針 を読む。Phase 詳細設計があれば、`### 変更対象 file` と契約の節を読む (冒頭に「無効」とあるものは使わない)。
-3. `git diff <base>...HEAD` で差分を取得し、変更 file の種類から当てる観点を決める。
+3. `git diff <base>` で差分を取得 (未 commit の変更を含む。未追跡の file は `git ls-files --others --exclude-standard` で列挙して全文を読む) し、変更 file の種類から当てる観点を決める。
 4. 汎用 12 観点に、次の Phase 固有の観点を加えて指摘を集める。
 
 ## Phase 固有の観点

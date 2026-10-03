@@ -11,7 +11,7 @@ tools: Read, Grep, Glob, Bash
 ## 手順
 
 1. 指摘データの dir の file を全部 Read する。読んだ file 名を報告の冒頭に並べる。1 つも読めなければ、review をせずにその旨を返す。
-2. `git diff <base>...HEAD` で差分を取得する。
+2. `git diff <base>` で差分を取得 (未 commit の変更を含む。未追跡の file は `git ls-files --others --exclude-standard` で列挙して全文を読む)する。
 3. 指摘データに記載された傾向ごとに、当たる差分の箇所を探す。静的な pattern は grep で 1 回に集め、意味の判断を伴う傾向は本文を読んで判定する。
 4. 差分の外も 1 枚開いて確かめる。過去の指摘は、差分の外の file を開いた結果から付くことが多い。
    - 根拠の保存: diff 内のリテラル値 (閾値 / timeout / retry 回数) の根拠がどこにあるか。`git log -S <値>` で履歴側を先に確かめる
