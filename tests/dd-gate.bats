@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# dd-gate.sh: spec 型 DD の script 判定 6 項目。良い fixture で PASS し、条件を 1 つ壊すと該当項目だけ FAIL することを見る。
+# dd-gate.sh: spec 型 DD の script 判定。良い fixture で PASS し、条件を 1 つ壊すと該当項目だけ FAIL することを見る。
 
 # GNU sed と BSD sed で -i の引数の形が違うので、どちらでも動く形にする
 sedi() {
@@ -258,6 +258,43 @@ EOF
   [ "$status" -eq 1 ]
   printf '%s\n' "$output" | grep -q '^FAIL  soft-delete-precedent'
   printf '%s\n' "$output" | grep -q '^PASS  soft-delete-lock'
+}
+
+# API も画面も持たない変更 (CLI / library / batch) の DD は Backend API と Frontend の表を作らない
+drop_api_and_screen() {
+  awk '/^### Backend API/ || /^### Frontend/ { skip = 1; next } /^#/ { skip = 0 } !skip' "$DD" > "${DD}.new" && mv "${DD}.new" "$DD"
+}
+
+@test "dd-gate: API と画面の表が無く合計にも数が無ければ surface の 3 項目が PASS" {
+  drop_api_and_screen
+  sedi 's/^合計: .*/合計: CLI の subcommand 新規 1、設定 file の key 追加 2、DB 新規 table 1。/' "$DD"
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q '^PASS  surface-api  API の変更なし'
+  printf '%s\n' "$output" | grep -q '^PASS  surface-rw  API の変更なし'
+  printf '%s\n' "$output" | grep -q '^PASS  surface-screen  画面の変更なし'
+}
+
+@test "dd-gate: API と画面の表が無ければ合計 1 行が無くても PASS" {
+  drop_api_and_screen
+  sedi '/^合計: /d' "$DD"
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q '^PASS  surface-total'
+}
+
+@test "dd-gate: API の表があるのに合計 1 行が無ければ surface-total が FAIL" {
+  sedi '/^合計: /d' "$DD"
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  surface-total'
+}
+
+@test "dd-gate: 表が無いのに合計に API の本数があれば surface-api が FAIL" {
+  drop_api_and_screen
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  surface-api  合計 2 本 / 表 0 行'
 }
 
 @test "dd-gate: 引数が無いか file が無ければ usage で exit 2" {

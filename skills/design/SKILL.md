@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # /specramo:design - 実装から逆算した仕様書型 Design Doc
 
-> **Goal**: Design Doc は、利用者から見える動きだけでなく、その変更を構成する API・Read / Write・画面・必要なシステム能力まで整理し、作業計画書で PR 単位の実装計画へ分解できる状態にする文書。作業計画書はその変更面を Phase = PR・層と責務・完了条件へ具体化する文書。file / method / SQL は `/specramo:phase-design` が決める。短く言えば「Design Doc = PR 分割できる粒度までシステム変更面を設計する文書、作業計画書 = その変更面を実装順と PR へ具体化する文書」。完成条件は「Design Doc だけを読んだ人が、実装詳細を知らなくても『何を作れば正解か』を判断できる状態」。
+> **Goal**: Design Doc は、利用者から見える動きだけでなく、その変更を構成する外部 interface (Web API・画面・CLI・公開 API・event 等のうち該当するもの)・Read / Write・必要なシステム能力まで整理し、作業計画書で PR 単位の実装計画へ分解できる状態にする文書。作業計画書はその変更面を Phase = PR・層と責務・完了条件へ具体化する文書。file / method / SQL は `/specramo:phase-design` が決める。短く言えば「Design Doc = PR 分割できる粒度までシステム変更面を設計する文書、作業計画書 = その変更面を実装順と PR へ具体化する文書」。完成条件は「Design Doc だけを読んだ人が、実装詳細を知らなくても『何を作れば正解か』を判断できる状態」。
 
 
 ## Design Doc と作業計画書とPhase 詳細設計の境界 (正本)
@@ -14,7 +14,7 @@ disable-model-invocation: true
 | Design Doc に記載する | 作業計画書に記載する | `/specramo:phase-design` に記載する |
 |---|---|---|
 | 背景・課題 / 目的 / 要件 | Phase = PR と実装順序 | 変更 file / 関数・メソッド / 問い合わせ / 公開する契約 |
-| 期待する振る舞い / API・DB・UI の変更 (何が増え、何が変わるか) | 触る層とその責務 | 契約 / TX / 排他 |
+| 期待する振る舞い / 外部 interface・保存データ・UI の変更 (何が増え、何が変わるか) | 触る層とその責務 | 契約 / TX / 排他 |
 | 制約 / 非対象 / Acceptance Criteria | 完了条件 (どの test で確かめるか) | test の実装方針 |
 | 設計上の重要な決定 (利用者から見える動きが変わる決定) | 処理の置き場や共用の仕方 (見える動きは同じで作り方だけが変わる決定) | データ移行の手順 / code レベルの詳細 |
 
@@ -22,7 +22,7 @@ disable-model-invocation: true
 
 **Position**: 要件の `/specramo:prd`、仕様のこの command、Phase = PR 分割の `/specramo:plan`、Phase n の実装方法の `/specramo:phase-design` (省略可)、設計の説明の `/specramo:explain`、Phase 実装の `/specramo:implement`、Phase の review の `/specramo:review`、code の説明の `/specramo:explain` の順に進む。
 
-> この command は大きい開発 (API が増える / DB が変わる / 画面が 2 つ以上変わる) でだけ使う。小さな変更は Design Doc を作らずに直接実装する。
+> この command は大きい開発 (外部 interface (API / CLI / 公開関数 等) が増える / 保存データの形が変わる / 画面が 2 つ以上変わる) でだけ使う。小さな変更は Design Doc を作らずに直接実装する。
 
 ## 規範と雛形 (Read only)
 
@@ -84,11 +84,11 @@ path があって fix keyword が無いときだけ、PRD から導くのか既�
 |---|---|---|---|
 | 1 | 背景・課題 | なぜこの変更が必要か説明できる (PRD にあれば参照でよい) | — |
 | 2 | 目的 | この開発で何を実現したいのか一文で言える。**誰の、どの状況が変わるのかを同じ 1 文に含める**。あわせて「この DD で決める範囲」を 1-2 文で記載し、レビュアーが見るものを最初に掴める | Overview の 1 文目に行為者 (運営 / 出品者 / 購入者 等) と状況が発生している。1 文目と 2 段落目 |
-| 3 | 対象範囲 | 何を変更するのか分かる。Implementation Surface に API (種別 Read / Write、新規 / 既存拡張、責務)、必要な Read / Write の能力 (新規 / 既存)、画面 (FE 側の logic の有無)、保存データ (DB なら新規 table / 既存 table の列追加を 5 列表で) が表で整理され、作業計画書が PR 単位に分解できる | Implementation Surface の合計 1 行と 5 表 (Current State の直後に置き、endpoint 名と画面名と table 名で記載する。DB 変更が無いときも Data Schema に「DB 変更なし」の 1 行)。**見出し名と 1 列目の header は雛形のとおりに記載する**。`### Backend API` の 1 列目は `endpoint`、`### Frontend` の 1 列目は `画面` で、能力の 2 表は `### Required Read Capabilities` と `### Required Write Capabilities` にする。`dd-gate.sh` はこの見出しと header で表を特定するので、`### API` や `### 画面` のように言い換えると表 0 行と判定される。合計 1 行の各数は表の行を `grep -c` で数えて書く (header 行と区切り行を除く。列名の「新規 / 既存」が hit に含まれる)。**`Read n / Write n` が指すのは Backend API 表の種別列の内訳**で、能力の表の行数は「Read の能力 n」のように別の語で書き、合計 1 行では API の内訳より後ろに並べる (`dd-gate.sh` は最初に現れた `Read n` を採用する)。**Frontend 表の行は変更がある画面だけにし、画面の変更が無いときは表を作らず合計 1 行に「画面 0」と記載する** (Data Schema の「DB 変更なし」と違い、「変更なし」の行を追加すると合計と行数が一致しない)。endpoint の新規 / 既存拡張と形 (1 件取得 / 一覧) が route 定義と一致する |
+| 3 | 対象範囲 | 何を変更するのか分かる。Implementation Surface に API (種別 Read / Write、新規 / 既存拡張、責務)、必要な Read / Write の能力 (新規 / 既存)、画面 (FE 側の logic の有無)、保存データ (DB なら新規 table / 既存 table の列追加を 5 列表で) が表で整理され、作業計画書が PR 単位に分解できる | Implementation Surface の合計 1 行と 5 表 (Current State の直後に置き、endpoint 名と画面名と table 名で記載する。DB 変更が無いときも Data Schema に「DB 変更なし」の 1 行)。**見出し名と 1 列目の header は雛形のとおりに記載する**。`### Backend API` の 1 列目は `endpoint`、`### Frontend` の 1 列目は `画面` で、能力の 2 表は `### Required Read Capabilities` と `### Required Write Capabilities` にする。`dd-gate.sh` はこの見出しと header で表を特定するので、`### API` や `### 画面` のように言い換えると表 0 行と判定される。合計 1 行の各数は表の行を `grep -c` で数えて書く (header 行と区切り行を除く。列名の「新規 / 既存」が hit に含まれる)。**`Read n / Write n` が指すのは Backend API 表の種別列の内訳**で、能力の表の行数は「Read の能力 n」のように別の語で書き、合計 1 行では API の内訳より後ろに並べる (`dd-gate.sh` は最初に現れた `Read n` を採用する)。**Frontend 表の行は変更がある画面だけにし、画面の変更が無いときは表を作らない** (合計 1 行には「画面 0」と書くか、画面の数を書かない。Data Schema の「DB 変更なし」と違い、「変更なし」の行を追加すると合計と行数が一致しない)。**Web API も画面も持たない変更 (CLI / library / batch / 組み込み 等) は Backend API と Frontend の表を作らず**、外部 interface を `### Interfaces` 表 (1 列目 `interface`) に書く。`dd-gate.sh` は表も合計の数も無い項目を対象なしとして PASS にする。endpoint の新規 / 既存拡張と形 (1 件取得 / 一覧) が route 定義と一致する |
 | 4 | 非対象 | 今回やらないことが分かる。空にしない | Non-Goals が 1 行以上 |
 | 5 | 期待する振る舞い | 正常系だけでなく主要な条件分岐 (境界 / 失敗時 / 同時実行 / 再送) も分かる。分岐のある場面は文章だけで説明せず、図か番号付き手順で示す | 各受け入れ条件に境界か失敗時の記述。`dd-gate.sh` の `behavior-diagram` (分岐のある受け入れ条件が 2 行以上あるのに振る舞いの節へ図も番号付き手順も無いと WARN。分岐語の検出は語彙に依存するため FAIL にしない) |
 | 6 | Acceptance Criteria | 実装後に「完成した」と客観的に判定できる。「〜のとき、〜が〜になる」の形で、真偽が決まる | 各受け入れ条件に対応する振る舞いの節がある (本文に番号は書かない)。PRD と同じ条件を DD に書き換えていない |
-| 7 | 外部から見える変更 | API / DB / UI の変更が整理され、変更が無い場合も「変更なし」と分かる | — |
+| 7 | 外部から見える変更 | 外部 interface / 保存データ / UI の変更が整理され、変更が無い場合も「変更なし」と分かる | — |
 | 8 | 既存仕様との関係 | 何を維持し、何を変えるのか明確 (PRD から変えた点は「PRD と違う点」と明記し、書き戻す) | 「PRD に書き戻す要件」の表 |
 | 9 | 重要な設計判断 | 複数案があり得る部分について、どの方向にするか決まっている。却下案と理由がある。未確定事項 (Qn) に依存する決定は「暫定決定」と明記し、Qn と矛盾して見えないようにする | 設計判断の節 |
 | 10 | 制約・前提条件 | 後方互換、性能、既存データ、リリース条件が書かれている。切替を伴うなら flag の型 (原則は code 定数型) と有効化 PR、撤去の条件が Release の節にある | 決定事項の「受け入れる制約」列、Release の節 |

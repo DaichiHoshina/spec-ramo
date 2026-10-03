@@ -34,7 +34,7 @@
 - [既存の処理]。[新しい処理をその隣に置く / 形を合わせる 等の使い方]
 
 ## 4. Implementation Surface (何をどのくらい作るか。PR 分割できる粒度のシステム変更面)
-冒頭に合計を 1 行書く (例: API 変更 5 本 (Read 3 / Write 2)、Read の能力 1、DB 新規 table 2 / 列追加 1、画面 4)。`Read n / Write n` は Backend API 表の種別列の内訳を指し、能力の表の行数は「Read の能力 n」のように別の語で書いて API の内訳より後ろに並べる (`dd-gate.sh` は最初に現れた `Read n` を採用する)。下の見出し名と 1 列目の header は言い換えずにそのまま使う (`dd-gate.sh` がこの文字列で表を特定する)。Frontend 表の行は変更がある画面だけにし、画面の変更が無いときは表を作らず合計 1 行に「画面 0」と書く (Data Schema の「DB 変更なし」と違い、「変更なし」の行を追加すると合計と行数が食い違う)。行の名前は endpoint (`GET /v2/...`) と画面名の具体名で書く。endpoint は route 定義で実在と形 (1 件取得 / 一覧) を確かめ、無ければ「新規」と書く。method 名・SQL・file 名は書かない。field の詳細は Appendix B へ
+冒頭に合計を 1 行書く (例: API 変更 5 本 (Read 3 / Write 2)、Read の能力 1、DB 新規 table 2 / 列追加 1、画面 4。CLI や library なら 例: subcommand 新規 1、公開関数の追加 2、設定 key 追加 1)。**作るものに合う表だけを置く**: Web API が無ければ Backend API 表を、画面が無ければ Frontend 表を作らず、合計 1 行にも API と画面の数を書かない (`dd-gate.sh` は表も数も無い項目を「対象なし」で PASS にする)。API と画面のどちらも無い変更では合計 1 行も省いてよい。CLI の subcommand、library の公開 API、event / message、batch job、設定 file の key のような外部 interface は Interfaces 表に書く。`Read n / Write n` は Backend API 表の種別列の内訳を指し、能力の表の行数は「Read の能力 n」のように別の語で書いて API の内訳より後ろに並べる (`dd-gate.sh` は最初に現れた `Read n` を採用する)。下の見出し名と 1 列目の header は言い換えずにそのまま使う (`dd-gate.sh` がこの文字列で表を特定する)。Frontend 表の行は変更がある画面だけにし、画面の変更が無いときは表を作らず合計 1 行に「画面 0」と書く (Data Schema の「DB 変更なし」と違い、「変更なし」の行を追加すると合計と行数が食い違う)。行の名前は endpoint (`GET /v2/...`) と画面名の具体名で書く。endpoint は route 定義で実在と形 (1 件取得 / 一覧) を確かめ、無ければ「新規」と書く。method 名・SQL・file 名は書かない。field の詳細は Appendix B へ
 ### Backend API
 | endpoint | 種別 (Read / Write) | 変更 (新規 / 既存拡張) | 主な責務 |
 ### Required Read Capabilities
@@ -43,7 +43,9 @@
 | Write | 新規 / 既存 | 条件・結果 |
 ### Frontend
 | 画面 | 種別 (新規 / 更新) | FE 側の logic (表示するだけ / 状態や制御がある) |
-### Data Schema (table 設計。無ければ「DB 変更なし」1 行)
+### Interfaces (Web API と画面以外の外部 interface があるときだけ)
+| interface | 種類 (CLI / 公開 API / event / batch / 設定 等) | 変更 (新規 / 既存拡張) | 主な責務 |
+### Data Schema (永続化するデータの設計。RDB 以外 (file / KVS / document DB) なら table を保存単位に読み替える。永続化が無ければ「保存データの変更なし」1 行)
 新規 table と既存 table の列追加を table ごとに書く。「別 table にするか列を追加するか」「一意制約の範囲」は利用者から見える動きを変える決定なので DD で固める。DDL 全文と SQL、migration 手順は書かない (table ごとの 5 列表にそろえる)
 | table | 変更 (新規 / 列追加) | 用途 |
 変更後の関係を ER 図 (mermaid `erDiagram`) で 1 つ描く。新規 table と列追加する既存 table、それらが参照する既存 table だけを載せ、新規は entity 名の後に「新規」と書く。線は FK と多重度 (1 対 0..1 / 1 対 0..N) を表し、列は主キーと FK 列だけ書く (5 列表と二重にしない)。`<details>` に入れず本文に置く (判断に必要な図のため)
@@ -97,7 +99,7 @@
 
 ## Appendix
 ### A. 実装トラッキング: 作業計画書の path (PR 分割と順序はそちらに置き、本 DD には書かない) / PRD 更新 PR (Section 5.1 の書き戻し) / 実装 PR
-### B. API リファレンス (FE と BE の契約): endpoint ごとに request / response に増える field 名と型、HTTP status の対応表。本文の Implementation Surface の行と 1 対 1 にし、本文からは「Appendix B」で参照する。file path / 関数名 / SQL はここにも書かない
+### B. API リファレンス (外部 interface の契約。Web API / 公開 API / CLI があるときだけ): endpoint (または interface) ごとに request / response に増える field 名と型、結果の対応表 (Web API なら HTTP status、CLI なら終了コード)。本文の Implementation Surface の行と 1 対 1 にし、本文からは「Appendix B」で参照する。file path / 関数名 / SQL はここにも書かない
 ### C. 関連
 識別子対応表は DD に置かない。file path / 関数名 / SQL は `/specramo:phase-design` の変更対象 file に記載する。作業計画書の完了条件に残してよいのは test 名と判定 command だけとする。table と column は本文 Implementation Surface の Data Schema に、endpoint と field 名と HTTP status は Appendix B に置く
 ```
@@ -116,7 +118,7 @@
 - 受け入れ条件 / 決定事項 / CUD / 未確定は表で書く。**有効** / **無効** のような状態語と「案 A (採用)」は太字にする
 - 大きい図 (ER / sequence) と Appendix は `<details><summary>展開して読む (対象)</summary>` で囲む。本文で判断に必要な図 (state / flowchart) は入れない
 - 設計判断が 4 つ以下なら Section 7 の表、5 つ以上なら「決定 n」小見出しで本文に記載する。Appendix に比較表を分けない (本文と Appendix で決定が二重になる)
-- 表は prettier (`npx prettier --parser markdown`) で列幅を合わせてから出す
+- 表の列幅は repo で使っている markdown の整形 tool があればそれで合わせる (例: `npx prettier --parser markdown`)。無ければ揃えなくてよい
 
 ## 図の使い方
 
@@ -138,7 +140,7 @@
 
 ## 節を削る判定
 
-- 選択肢が無かった機能では 9 を削る。data も画面も増えない変更では 4 の該当行だけ維持する
+- 選択肢が無かった機能では 9 を削る。data も画面も増えない変更では 4 の該当行だけ維持する。API も画面も無い変更 (CLI / library / batch / 組み込み) では Backend API と Frontend の表を作らない
 - どの受け入れ条件にも対応しない節や表は削る。逆に、どの節にも説明が無い受け入れ条件は 6 に見出しを追加する。対応は書き手が確かめる作業で、本文に番号を記載して示さない
 - Appendix の図は、5 と 6 を読んで順序が追えないときだけ追加する (図が無いと読めない doc は本文が不足している)
 
