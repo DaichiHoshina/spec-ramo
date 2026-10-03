@@ -59,6 +59,19 @@ skills_except_init() {
   done
 }
 
+@test "agents: エージェント A は実装の形・採否の決めやすさ・Phase 詳細設計との整合を点検する" {
+  f="$ROOT/agents/review-design.md"
+  grep -q '^- \*\*実装の形\*\*' "$f"
+  grep -q '^- \*\*採否の決めやすさ\*\*' "$f"
+  grep -q '^- \*\*Phase 詳細設計との整合\*\*' "$f"
+  grep -q '^### Implementation Shape' "$ROOT/skills/implement/code-quality.md"
+}
+
+@test "skills: implement の完了報告に mutation check の結果の行があり、review がそれを読む" {
+  grep -q '^mutation check: <壊した条件> → <fail した test 名>' "$ROOT/skills/implement/SKILL.md"
+  grep -q '完了報告の「mutation check」行' "$ROOT/agents/review-design.md"
+}
+
 @test "agents: エージェント D は指針の書き方でなく動作への影響で重さを決め、慣習の違反を Warning にする" {
   f="$ROOT/agents/review-language.md"
   grep -q '放置したときに起きることで決める' "$f"

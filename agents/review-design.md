@@ -26,6 +26,20 @@ tools: Read, Grep, Glob, Bash
   - Design Doc が画面に表示する文字列として「」で示した列名・ボタン名・文言が、実装に完全一致で存在しない場合は Warning。対象は Design Doc の画面や表示を扱う節と、この Phase の担当条件の文中にある「」に限る (節名や用語の「」は含めない)。`git grep -F '<文字列>'` が 0 件のものを列挙する。設計と実装のどちらを修正するかは利用者が決め、エージェントはどちらも修正しない
   - Design Doc の path が無い作業計画書では、この観点を省いた旨を 1 行返す
 - **命名**: diff で新設した関数名と変数名を `${CLAUDE_PLUGIN_ROOT}/skills/implement/code-quality.md` の「Naming Criteria」と「Naming Shape」で点検する (Warning)。
+- **実装の形**: diff が採用した形を、同じ file の「Implementation Shape」で点検する。対象は transaction の渡し方 / 生成の形 (constructor か関数か) / 既存の型の field や signature の変更になる。
+  - default branch の同じ層で候補の形ごとに件数を数え、少数派の形を採用している箇所、または既存の型を書き換えている箇所を指摘する (Warning)
+  - この機能自身の branch と domain の code は先例に数えない
+- **採否の決めやすさ**: reviewer が diff と PR 本文だけで採否を決められるかを確かめる (`/specramo:plan` の「分割の優先順位」の 1)。次の 2 つはどちらも Warning にする。
+  - PR 本文と code / test の comment が、reviewer の読めない資料 (作業計画書 / 手元のメモ / それらの中の番号) を参照している
+  - `/specramo:implement` の完了報告の「検証」行に記載された問題があるのに、その理由が PR 本文 (PR 作成前なら本文の下書き) に無い。問題とは test / lint の失敗、repo の規約から外れた箇所、未実施の動作確認を指す
+  - review は PR 作成より前に実行するので、CI の結果は判定に使わない
+  - PR 本文も下書きも無いときは、PR 本文の分を「本文が無いため未判定」と 1 行返し、code / test の comment の分だけを判定する (該当なしとして扱わない)
+- **Phase 詳細設計との整合**: 詳細設計が決めた項目を 1 項目ずつ diff と突き合わせ、不一致は Warning とする。
+  - 対象の項目: 判断の分岐 / 値の受け取りの型と変換の位置 / fixture の構成と条件の対応 / test の file と実行 command / mutation check の対象と実施の有無 (`/specramo:implement` の完了報告の「mutation check」行で確かめる) / 変更対象 file
+  - 各指摘に修正する側を添える。実装が repo の慣習や前 Phase の実物に合っていて設計が外れているなら「設計側 (`/specramo:phase-design` で書き換え)」、設計どおりでない理由が見当たらないなら「実装側 (`--fix`)」、実装後も「未実装のため実物と照合していない」などの注記が詳細設計に記載されたままなら「設計側」
+  - 詳細設計が無い Phase では、この観点を省いた旨を 1 行返す
+
+commit を順に読む前提の指摘 (commit の往復 / 並び順) は返さない。reviewer は全 commit をまとめた PR の diff を読む。
 
 ## 返すもの
 

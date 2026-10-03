@@ -60,6 +60,19 @@ Avoid `convert` / `process` when one of the verbs above fits.
 
 Check: translate the name into the language of the PRD. It should be a word the PRD, Design Doc, or issue already uses.
 
+### Implementation Shape
+
+Pick how code is wired (passing a transaction, constructor vs. plain function, field types of an existing type, error style) the same way as names: by the majority in the repo.
+
+| Step | How |
+|------|-----|
+| 1. List the candidate shapes | e.g. a constructor that takes the transaction / a function that takes the transaction as an argument / changing a field of an existing type to hold the transaction |
+| 2. Count each shape in the same layer | `git grep` on the default branch. Exclude the feature's own branch chain and the feature's own domain, so one earlier PR of the same feature does not count as "existing" |
+| 3. Take the majority | One precedent is not enough when another shape has more. Record the counts and the chosen precedent as `file:line` on the default branch |
+| 4. Prefer the shape that leaves existing code unchanged | A shape that needs changing an existing type's fields or signatures loses to one that only adds code, unless the majority says otherwise |
+
+Example: to call a write inside another write's transaction, 22 existing functions take the transaction as an argument and keep the existing type unchanged, while a constructor that stores the transaction has 1 use. Take the function that receives the transaction.
+
 ### Comment Principles
 
 - Default is no comment. Names and structure carry the "what"
