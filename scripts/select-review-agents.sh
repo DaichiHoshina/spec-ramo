@@ -3,7 +3,7 @@
 #   <A|B|C|D> <TAB> run  <TAB> <エージェントに渡す値>
 #   <A|B|C|D> <TAB> skip <TAB> <省いた理由>
 # を表示する。渡す値は、B が指摘データの dir、C が規約 file (空白区切り)、D が開発指針の
-# file (空白区切り。差分に該当する言語が無ければ空) になる。C の規約の path が存在しない
+# file (空白区切り。guidelines/languages/extensions.tsv で差分の拡張子に対応する指針。無ければ空) になる。C の規約の path が存在しない
 # ときは 1 path 1 行で
 #   warn <TAB> C <TAB> <警告>
 # を表示する。skill はこの表示どおりに起動する。
@@ -62,23 +62,23 @@ else
   printf 'C%sskip%s%s\n' "$tab" "$tab" "$reason"
 fi
 
-# D 言語の開発指針: 常に起動し、差分に含まれる言語の開発指針だけを渡す
-has_go=0
-has_ts=0
+# D 言語の開発指針: 常に起動し、差分に含まれる拡張子に対応する開発指針だけを渡す。
+# 拡張子と指針の対応は guidelines/languages/extensions.tsv が正本で、言語を足すときは表に行を追加する
+lang_dir="$plugin_root/guidelines/languages"
+exts=""
 for f in "$@"; do
-  case "$f" in
-    *.go) has_go=1 ;;
-    *.ts | *.tsx) has_ts=1 ;;
-  esac
+  base="${f##*/}"
+  case "$base" in *.*) exts="${exts}${base##*.}${tab}" ;; esac
 done
 guides=""
-lang_dir="$plugin_root/guidelines/languages"
-if [ "$has_go" -eq 1 ]; then
-  for g in golang go-concurrency go-modern-idioms go-performance go-test-stability; do
-    guides="${guides:+$guides }$lang_dir/$g.md"
+if [ -n "$exts" ] && [ -f "$lang_dir/extensions.tsv" ]; then
+  # 差分に現れた拡張子の行を表の順に取り、同じ指針を 2 度渡さない
+  for g in $(awk -F'\t' -v exts="$exts" '
+    BEGIN { n = split(exts, e, "\t"); for (i = 1; i <= n; i++) if (e[i] != "") want[e[i]] = 1 }
+    /^#/ || NF < 2 { next }
+    ($1 in want) { m = split($2, gs, " "); for (j = 1; j <= m; j++) if (!(gs[j] in seen)) { seen[gs[j]] = 1; print gs[j] } }
+  ' "$lang_dir/extensions.tsv"); do
+    [ -f "$lang_dir/$g" ] && guides="${guides:+$guides }$lang_dir/$g"
   done
-fi
-if [ "$has_ts" -eq 1 ]; then
-  guides="${guides:+$guides }$lang_dir/typescript.md"
 fi
 printf 'D%srun%s%s\n' "$tab" "$tab" "$guides"

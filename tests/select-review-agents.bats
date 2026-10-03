@@ -94,6 +94,26 @@ line() {
   [ -z "$(line D | cut -f3)" ]
 }
 
+@test "select-review-agents: 対応表に行が無い拡張子 (.py) だけの差分では D は開発指針なしで run" {
+  run bash "$SCRIPT" "$REPO" tools/gen.py
+  [ "$(line D | cut -f2)" = "run" ]
+  [ -z "$(line D | cut -f3)" ]
+}
+
+@test "select-review-agents: .go と .ts を含む差分では D に両方の指針を重複なしで渡す" {
+  run bash "$SCRIPT" "$REPO" a.go b.go web/c.ts web/d.mts
+  [ "$(line D | cut -f3 | wc -w)" -eq 6 ]
+  [ "$(line D | cut -f3 | tr ' ' '\n' | sort | uniq -d | wc -l)" -eq 0 ]
+}
+
+@test "select-review-agents: 対応表に書いた開発指針の file はすべて実在する" {
+  tsv="${BATS_TEST_DIRNAME}/../guidelines/languages/extensions.tsv"
+  [ -f "$tsv" ]
+  for g in $(grep -v '^#' "$tsv" | cut -f2); do
+    [ -f "${BATS_TEST_DIRNAME}/../guidelines/languages/$g" ] || { echo "missing: $g"; false; }
+  done
+}
+
 @test "select-review-agents: 設定 file が無ければ 2" {
   run bash "$SCRIPT" "${BATS_TEST_TMPDIR}"
   [ "$status" -eq 2 ]

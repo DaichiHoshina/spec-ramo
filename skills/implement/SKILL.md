@@ -46,7 +46,7 @@ disable-model-invocation: true
 5. Phase の「実装への指針」に列挙された repo 規範 (rule file) を着手前に Read し、命名 / 型 / 層 / error / test の制約を採用する。
    - 列挙が無ければ、設定 file の `rules` に並べた file (未記入なら repo の `.claude/rules/` の file) から、この Phase の対象に当たるものを Read する。上限は 3 file にする
    - Phase 詳細設計に無い関数名と変数名は、同梱した `code-quality.md` の「Naming Criteria」の 3 基準と「Naming Shape」で付ける。同じ層の先例を grep して多数派の語を使う
-   - 対象言語の開発指針が `${CLAUDE_PLUGIN_ROOT}/guidelines/languages/` にあれば、その「Naming Conventions」も当てる
+   - 対象言語の開発指針を `${CLAUDE_PLUGIN_ROOT}/guidelines/languages/extensions.tsv` で変更する file の拡張子から引き、行があればその指針の「Naming Conventions」も当てる (行が無い言語は repo 規範と `code-quality.md` だけで決める)
 6. Phase の 対象 / 対象外 / 完了条件 を scope として採用する。対象外に列挙された file には触らず、変更する必要が発生したら止まって報告する。
 7. branch は作業計画書の PR 見出しの `branch:` の名前にし、repo の default branch から作る。同名の branch が既にあれば、そこへ checkout する。
 8. 着手前に Phase の「merge 後にできること」と完了条件を 3 行で chat に写し、利用者が読んで理解している前提を作る。AI の出力は下書きで、レビューに提出するのは利用者が説明できる code だけとする。

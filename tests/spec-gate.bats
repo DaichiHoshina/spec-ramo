@@ -355,6 +355,34 @@ EOF2
   printf '%s\n' "$output" | grep -q '^WARN  abstraction  対象に file path 1 件'
 }
 
+@test "spec-gate: Go と TypeScript 以外の言語の file path も abstraction が WARN" {
+  cat >> "$SPEC" <<'EOF2'
+
+**対象**: `src/order/reader.rs` と `app/models/order.rb` と `lib/Order.java` と `cli/main.py`: 単件取得
+EOF2
+  run bash "$SCRIPT" "$SPEC"
+  printf '%s\n' "$output" | grep -q '^WARN  abstraction  対象に file path 4 件'
+}
+
+@test "spec-gate: 拡張子の前方一致 (.config を .c と読む) を file path にしない" {
+  cat >> "$SPEC" <<'EOF2'
+
+**対象**: 設定 (`app.config`): 読み込みの既定値
+EOF2
+  run bash "$SCRIPT" "$SPEC"
+  ! printf '%s\n' "$output" | grep -q '^WARN  abstraction'
+}
+
+@test "spec-gate: 実装への指針に Rust の先例 file:line があると impl-form が FAIL" {
+  cat >> "$SPEC" <<'EOF2'
+
+**実装への指針**: 形は `src/writer/payment.rs:42` と同じにする
+EOF2
+  run bash "$SCRIPT" "$SPEC"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  impl-form'
+}
+
 @test "spec-gate: 層と責務で書いた対象は abstraction を WARN にしない" {
   cat >> "$SPEC" <<'EOF2'
 

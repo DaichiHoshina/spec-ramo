@@ -99,6 +99,10 @@ else
 fi
 if [ "$missing_branch" -eq 0 ]; then report PASS branch "PR ${pr_count} 本すべてに ${branch_label}"; else report FAIL branch "branch 名の無い PR ${missing_branch} 本 (期待する形: ${branch_label})"; fi
 
+# source file と判定する拡張子。主要な言語を並べ、file:line と file path の検出に使う。
+# ERE の選択は最長一致なので短い拡張子 (c / h / m) が長い拡張子 (cpp / hpp / mm) を切り詰めることは無い
+SRC_EXT='go|ts|tsx|mts|cts|js|jsx|mjs|cjs|vue|svelte|py|rb|java|kt|kts|scala|groovy|swift|m|mm|c|h|cc|cpp|cxx|hpp|hh|cs|fs|rs|php|ex|exs|erl|hs|ml|clj|dart|lua|pl|r|jl|zig|nim|sh|bash|ps1|sql|proto|tf'
+
 # (4) 実装形の混入。作業計画書は責務までを記述し、実装形は /specramo:phase-design が担当する (/specramo:plan)。
 # 対象は完了条件と code block を除いた全節にする。Read/Write・実装への指針・タスクの 3 節だけを
 # 判定すると、処理フロー・影響範囲・マージ順序に書かれた method 名と file:line を検出できない。
@@ -113,7 +117,7 @@ impl_sections=$(awk '
   /^\*\*/ { skip = 0 }
   !skip { print }
 ' "$SPEC")
-impl_hits=$(printf '%s\n' "$impl_sections" | grep -nE '[A-Z][A-Za-z0-9_]*[a-z][A-Za-z0-9_]*\(|[A-Za-z0-9_/.-]+\.(go|ts|vue|py):[0-9]+|go generate|git grep|TODO\(#' || true)
+impl_hits=$(printf '%s\n' "$impl_sections" | grep -nE '[A-Z][A-Za-z0-9_]*[a-z][A-Za-z0-9_]*\(|[A-Za-z0-9_/.-]+\.('"${SRC_EXT}"'):[0-9]+|go generate|git grep|TODO\(#' || true)
 # SQL は Read/Write だけで数える。定義が SQL を名指しで禁じているのはこの項目で (/specramo:plan)、
 # タスクの SQL は移行前のデータ確認のように判定 command として書かれることがある
 rw_hits=$(awk '
@@ -156,7 +160,7 @@ path_hits=$(awk '
   /^##?#?#?#?#? / { on = 0 }
   /^\*\*/ && !/^\*\*対象\*\*/ { on = 0 }
   on { print }
-' "$SPEC" | grep -oE '[A-Za-z0-9_/.<>-]+\.(go|ts|vue|py|html)' | sort -u || true)
+' "$SPEC" | grep -oE "[A-Za-z0-9_/.<>-]+\\.(${SRC_EXT}|html)\\b" | sort -u || true)
 path_count=$(printf '%s' "$path_hits" | grep -c . || true)
 if [ "$path_count" -gt 0 ]; then
   printf 'WARN  abstraction  対象に file path %s 件。層と責務の語で書き、path は /specramo:phase-design へ移す (新規作成する file は名指しのままでよい)\n' "$path_count"
