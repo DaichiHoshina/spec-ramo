@@ -103,6 +103,41 @@ EOF
   [[ "$output" == *"| #1 | 一覧 | 実装中 | |"* ]]
 }
 
+@test "status: pr_check_command があれば gh でなくその command で PR を確かめる" {
+  CHECK="${BATS_TEST_TMPDIR}/check.sh"
+  printf '#!/usr/bin/env bash\necho "$1" >> "%s"\necho "!12"\n' "$CALLS" > "$CHECK"
+  printf 'pr_check_command: bash %s {branch}\n' "$CHECK" >> "$REPO/.specramo/config.yml"
+  git -C "$REPO" remote remove origin
+  SPECRAMO_GH="${BATS_TEST_TMPDIR}/no-such-gh" run bash "$SCRIPT" "$REPO"
+  [ "$status" -eq 0 ]
+  [ "$(cat "$CALLS")" = "phase/2-notify" ]
+  grep -q '| #2 | 通知 | PR 作成済み |' "$PLAN"
+}
+
+@test "status: pr_check_command が何も表示しなければ状態を変えない" {
+  printf 'pr_check_command: "true {branch}"\n' >> "$REPO/.specramo/config.yml"
+  run bash "$SCRIPT" "$REPO"
+  [ "$status" -eq 0 ]
+  grep -q '| #2 | 通知 | レビュー済み |' "$PLAN"
+  ! printf '%s\n' "$output" | grep -q '確認できなかった'
+}
+
+@test "status: pr_check_command が失敗したら状態を変えず、確認できなかった旨を表示する" {
+  printf 'pr_check_command: "false {branch}"\n' >> "$REPO/.specramo/config.yml"
+  run bash "$SCRIPT" "$REPO"
+  [ "$status" -eq 0 ]
+  grep -q '| #2 | 通知 | レビュー済み |' "$PLAN"
+  [[ "$output" == *"#2: pr_check_command が失敗し"* ]]
+}
+
+@test "status: pr_check_command の branch 名は shell に解釈させない" {
+  sed -i.bak 's/phase\/2-notify/phase\/2-$(touch pwned)/' "$PLAN"
+  printf 'pr_check_command: "printf %%s {branch} > %s"\n' "${BATS_TEST_TMPDIR}/got" >> "$REPO/.specramo/config.yml"
+  run bash "$SCRIPT" "$REPO"
+  [ ! -e "$REPO/pwned" ]
+  [ "$(cat "${BATS_TEST_TMPDIR}/got")" = 'phase/2-$(touch pwned)' ]
+}
+
 @test "status: 設定 file が無ければ 2" {
   run bash "$SCRIPT" "${BATS_TEST_TMPDIR}"
   [ "$status" -eq 2 ]

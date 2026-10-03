@@ -20,3 +20,8 @@ test_paths:
 # 未記入なら .claude/rules/ の file を読む
 rules:
 #  - docs/coding-rules.md
+
+# /specramo:status が Phase の branch の PR (merge request) の有無を確かめる command。{branch} に branch 名が入る
+# 終了コード 0 以外 = 確認できなかった / 0 で何か表示 = PR あり / 0 で何も表示しない = PR なし
+# 未記入なら GitHub CLI (gh pr list --head {branch}) で確かめる。値に「 #」を含めない (comment として読まれる)
+# pr_check_command: glab mr list --source-branch {branch} --all --output json | jq '.[].iid'

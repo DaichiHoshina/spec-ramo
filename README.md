@@ -68,12 +68,15 @@ PRD から PR までは、次の順に進めます。
 
 ## 前提
 
-手順と検査 script は、リレーショナル DB を使う Web API のバックエンド開発を想定しています。
+手順は言語・アーキテクチャ・code の置き場所を問いません。Web API、CLI、library、batch、フロントエンドのどれでも使えます。検査 script と同梱の指針には、対象を絞った部分があります。
 
-- 言語別の開発指針 (`/specramo:review` の観点の 1 つ) は Go と TypeScript だけです。ほかの言語でも使えますが、その観点の review は行われません
-- 設計書の検査は HTTP の status code と、MySQL のロック (`SELECT ... FOR UPDATE`、gap lock) を前提にしています。PostgreSQL では同じロックでも挙動が違うので、指摘を読み替えてください
-- table を読む箇所の数え上げ (`scripts/table-readers.sh`) は SQL の文字列 (`FROM` / `JOIN`) だけを数えます。ORM の method で読む箇所は数えないので、ORM を使う repo では呼び出し元を別に調べてください
-- CLI、バッチだけの変更、フロントエンドだけの変更では、設計書の検査の一部 (status code の数など) が当てはまりません
+- 設計書の Implementation Surface は、作るものに合う表だけを置きます。Web API が無ければ API の表を、画面が無ければ画面の表を作らず、検査はその項目を対象なしとして通します
+- 言語別の開発指針 (`/specramo:review` の観点の 1 つ) は、`guidelines/languages/extensions.tsv` の拡張子の対応表で選びます。同梱しているのは Go と TypeScript の指針で、表に行が無い言語ではその観点を指針なしで行います
+- 作業計画書の Change Map は、repo が宣言する層名 (宣言が無ければ module / package などの実在する構成単位) で書きます。特定の architecture を前提にしません
+- `/specramo:status` は既定で GitHub CLI (`gh`) に PR の有無を問い合わせます。GitLab など GitHub 以外では、設定 file の `pr_check_command` で確かめ方を差し替えます
+- 表の列幅の整形は任意です。repo で使っている markdown の整形 tool (prettier など) があれば使います
+- 保存データの検査の一部は RDB を前提にしています。論理削除と一意性の検査は MySQL のロック (`SELECT ... FOR UPDATE`、gap lock) で説明しており、PostgreSQL では読み替えが要ります。table を読む箇所の数え上げ (`scripts/table-readers.sh`) は SQL の文字列 (`FROM` / `JOIN`) だけを数えるので、ORM を使う repo や RDB を使わない repo では呼び出し元を別に調べてください
+- 設計書の HTTP status の検査は WARN だけで、Web API でない変更では該当しません
 
 ## 使わない場面
 
@@ -90,6 +93,7 @@ Spec Ramo は、PR が 2 本以上に分かれる大きさの開発を対象に�
 | `test_paths` | なし | 変更行数から除くテスト file の path pattern |
 | `branch_pattern` | なし | Phase の branch 名の形 (例: `phase/<PR>-<slug>`)。未記入なら名前があるかだけを検査する |
 | `rules` | なし | review のエージェント C が読む規約 file。未記入なら `.claude/rules/` の file を読む |
+| `pr_check_command` | なし | `/specramo:status` が PR の有無を確かめる command。`{branch}` に branch 名が入る。終了コード 0 で何か表示すれば PR あり、何も表示しなければ PR なし、0 以外なら確認できなかった扱い。未記入なら `gh pr list` で確かめる (例: `glab mr list --source-branch {branch} --all --output json | jq '.[].iid'`) |
 
 環境変数 `SPECRAMO_REVIEW_DATA_DIR` で、review のエージェント B が読む指摘データの dir を指定できます。初期値は `~/.config/specramo/review-data/` です。指摘データはチームの過去の review から作る file で、社内情報を含むので repo には置きません。dir に file が無ければ B は起動しません。
 
