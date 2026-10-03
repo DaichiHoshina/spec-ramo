@@ -29,7 +29,7 @@ disable-model-invocation: true
    bash "${CLAUDE_PLUGIN_ROOT}/scripts/resolve-template.sh" prd
    ```
 
-3. 書き出し先を決める。設定 file の `specs_dir` の下に機能名の dir を作り、`prd.md` に書き出す。PRD に記載しない技術的な内容は、同じ dir の tech-notes.md (技術メモ) に書き出す。機能名は引数から決め、無ければ 1 問だけ聞く。同じ path に PRD がすでにあれば、新規ではなく更新として扱う (Step 1 の更新 mode)。
+3. 書き出し先を決める。設定 file の `specs_dir` の下に機能名の dir を作り、`prd.md` に書き出す。PRD に記載しない技術的な内容は、同じ dir の tech-notes.md (技術メモ) に書き出す。機能名は引数から決め、無ければ 1 問だけ聞く。引数の先頭の語が英小文字・数字・`-` だけなら、その語をそのまま dir 名にし、言い換えない。同じ path に PRD がすでにあれば、新規ではなく更新として扱う (Step 1 の更新 mode)。
 
 ## Step 1: 入力の解釈
 

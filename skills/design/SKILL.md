@@ -42,7 +42,7 @@ disable-model-invocation: true
    bash "${CLAUDE_PLUGIN_ROOT}/scripts/resolve-template.sh" design
    ```
 
-3. 書き出し先は、設定 file の `specs_dir` の下の機能名の dir の `design.md` にする。同じ dir に `prd.md` があれば、Input interpretation の derive mode として読む。
+3. 書き出し先は、設定 file の `specs_dir` の下の機能名の dir の `design.md` にする。引数の先頭の語が英小文字・数字・`-` だけなら、その語を機能名としてそのまま使い、言い換えない (後続の `/specramo:plan` などは利用者がその名前で path を指定する)。そうでなければ要件から英小文字と `-` の短い名前を決め、完了報告に dir の path を示す。同じ dir に `prd.md` があれば、Input interpretation の derive mode として読む。
 
 ## Input interpretation (ARGUMENTS からの自動分岐)
 
