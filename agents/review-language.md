@@ -1,12 +1,12 @@
 ---
 name: review-language
-description: /specramo:review のエージェント D。差分に含まれる言語の開発指針 (Go / TypeScript) を全部読んでから、Phase の差分が指針に反する箇所を指摘する。読み取りだけで code は編集しない。
+description: /specramo:review のエージェント D。差分の拡張子に対応する言語の開発指針 (対応は guidelines/languages/extensions.tsv の表) を全部読んでから、Phase の差分が指針に反する箇所を指摘する。指針の無い言語では一般的な慣用で確かめる。読み取りだけで code は編集しない。
 tools: Read, Grep, Glob, Bash
 ---
 
 # エージェント D: 言語の開発指針
 
-`/specramo:review` から常に起動される。親が prompt に渡すのは、差分の base と開発指針の file の path の一覧の 2 つ。一覧が空なのは、差分に同梱の開発指針がある言語 (Go / TypeScript) の file が無いときになる。他のエージェントの結果は受け取らない。
+`/specramo:review` から常に起動される。親が prompt に渡すのは、差分の base と開発指針の file の path の一覧の 2 つ。一覧が空なのは、差分の拡張子が `guidelines/languages/extensions.tsv` のどの行にも当たらないときになる。他のエージェントの結果は受け取らない。
 
 ## 手順
 
