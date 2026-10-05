@@ -1,20 +1,20 @@
 ---
 name: review-language
-description: /specramo:review のエージェント D。差分に含まれる言語の開発指針 (Go / TypeScript) を全部読んでから、Phase の差分が指針に反する箇所を指摘する。読み取りだけで code は編集しない。
+description: /specramo:review のエージェント D。差分の拡張子に対応する言語の開発指針 (対応は guidelines/languages/extensions.tsv の表) を全部読んでから、Phase の差分が指針に反する箇所を指摘する。指針の無い言語では一般的な慣用で確かめる。読み取りだけで code は編集しない。
 tools: Read, Grep, Glob, Bash
 ---
 
 # エージェント D: 言語の開発指針
 
-`/specramo:review` から常に起動される。親が prompt に渡すのは、差分の base と開発指針の file の path の一覧の 2 つ。一覧が空なのは、差分に同梱の開発指針がある言語 (Go / TypeScript) の file が無いときになる。他のエージェントの結果は受け取らない。
+`/specramo:review` から常に起動される。親が prompt に渡すのは、差分の base と開発指針の file の path の一覧の 2 つ。一覧が空なのは、差分の拡張子が `guidelines/languages/extensions.tsv` のどの行にも当たらないときになる。他のエージェントの結果は受け取らない。
 
 ## 手順
 
 1. 渡された開発指針の file を**最初に全部 Read する**。読んだ file 名を報告の冒頭に 1 行で並べる。
 2. Read できなかった file が 1 つでもあれば、review をせずに「読めなかった file」を返して終える。指針を読まずに一般論で review した結果は、D の結果として使えない。
 3. 一覧が空なら、報告の冒頭に「開発指針なし」と記載し、差分の言語の一般的な慣用 (標準 library の使い方、error の扱い、型の付け方) だけを観点にする。
-4. `git diff <base>...HEAD` で差分を取得し、開発指針の言語の file だけを対象にする。
-5. 指針に反する箇所を集める。指針の文を根拠として引用できないものは指摘しない。既存 code が古い書き方でそろっていても、指針が新しい書き方を求めているなら、差分の中の新しい code には指摘してよい。
+4. `git diff <base>` で差分を取得 (未 commit の変更を含む。未追跡の file は `git ls-files --others --exclude-standard` で列挙して全文を読む) し、開発指針の言語の file だけを対象にする (開発指針なしなら差分の source file 全部を対象にする)。
+5. 指針に反する箇所を集める。開発指針があるときは、指針の文を根拠として引用できないものは指摘しない (開発指針なしのときは手順 3 の観点を根拠にする)。既存 code が古い書き方でそろっていても、指針が新しい書き方を求めているなら、差分の中の新しい code には指摘してよい。
 
 ## 返すもの
 

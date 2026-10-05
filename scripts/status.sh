@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # 機能ごとの Phase の進み具合を表示する。成果物の置き場所 (specs_dir) の下の dir を 1 つずつ
 # 機能として扱い、作業計画書の「Phase の状態」の表を表示する。
-# 状態がレビュー済みの Phase だけ、branch の PR が GitHub にあるかを確かめ、あれば状態を
-# PR 作成済みにしてから表示する。
+# 状態がレビュー済みの Phase だけ、branch の PR (merge request) があるかを確かめ、あれば状態を
+# PR 作成済みにしてから表示する。確かめ方は設定 file の pr_check_command で差し替えられ、
+# 未記入なら GitHub CLI (gh) に問い合わせる。
 # 引数: 設定 file を探し始める dir (省略時は current dir)
-# 環境変数: SPECRAMO_GH (GitHub への問い合わせに使う command。初期値は gh)
+# 環境変数: SPECRAMO_GH (pr_check_command が未記入のとき GitHub への問い合わせに使う command。初期値は gh)
 set -u
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -20,9 +21,26 @@ repo_root="$(dirname "$(dirname "$config")")"
 specs_dir="$(specramo_config_get "$config" specs_dir)" || specs_dir=".specramo/specs"
 case "$specs_dir" in /*) ;; *) specs_dir="$repo_root/$specs_dir" ;; esac
 
+# pr_check_command: branch 名を {branch} に入れて shell で実行する command。
+# 終了コードが 0 以外なら確認できなかった扱い、0 で何か表示すれば PR あり、何も表示しなければ PR なしと読む。
+# GitLab / Gitea / Bitbucket / 社内の review tool など、GitHub 以外でも PR の有無を確かめられるようにする
+pr_check="$(specramo_config_get "$config" pr_check_command)" || pr_check=""
+
 # GitHub の remote が無い repo では gh に問い合わせても PR は見つからないので、理由を分けて表示する
 has_github_remote=0
 git -C "$repo_root" remote -v 2>/dev/null | grep -q 'github\.com' && has_github_remote=1
+
+# $1 = branch。PR があれば何かを表示し、確認できなければ 0 以外を返す
+pr_lookup() {
+  if [ -n "$pr_check" ]; then
+    # branch 名は引数で渡し、command の文字列に埋め込まない (branch 名の記号を shell が解釈しないようにする)
+    (cd "$repo_root" && bash -c "${pr_check//\{branch\}/\"\$1\"}" specramo-pr-check "$1")
+  else
+    "$gh_cmd" pr list --head "$1" --state all --json number 2>/dev/null | grep '"number"'
+    # grep の 1 (一致なし) は PR なし、gh の失敗だけを確認できなかった扱いにする
+    [ "${PIPESTATUS[0]}" -eq 0 ]
+  fi
+}
 
 version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$plugin_root/.claude-plugin/plugin.json" | head -1)"
 echo "specramo ${version:-不明}"
@@ -84,15 +102,19 @@ for dir in "$specs_dir"/*/; do
       echo "  $pr: 作業計画書に branch 名が無いため、PR の有無を確認できなかった"
       continue
     fi
-    if [ "$has_github_remote" -eq 0 ]; then
-      echo "  $pr: GitHub の remote が無いため、PR の有無を確認できなかった"
+    if [ -z "$pr_check" ] && [ "$has_github_remote" -eq 0 ]; then
+      echo "  $pr: GitHub の remote が無いため、PR の有無を確認できなかった (GitHub 以外の場合は設定 file の pr_check_command を記入する)"
       continue
     fi
-    if ! out="$("$gh_cmd" pr list --head "$branch" --state all --json number 2>/dev/null)"; then
-      echo "  $pr: GitHub に問い合わせられず、PR の有無を確認できなかった"
+    if ! out="$(pr_lookup "$branch" 2>/dev/null)"; then
+      if [ -n "$pr_check" ]; then
+        echo "  $pr: pr_check_command が失敗し、PR の有無を確認できなかった"
+      else
+        echo "  $pr: GitHub に問い合わせられず、PR の有無を確認できなかった"
+      fi
       continue
     fi
-    if printf '%s\n' "$out" | grep -q '"number"'; then
+    if [ -n "$out" ]; then
       bash "$here/phase-state.sh" set "$plan" "$pr" "PR 作成済み" > /dev/null
     fi
   done <<EOF

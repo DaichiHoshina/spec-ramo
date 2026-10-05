@@ -1,0 +1,8 @@
+# 拡張子と言語の開発指針の対応表。select-review-agents.sh と /specramo:implement が読む
+# 1 列目 = 拡張子 (先頭の . を除く)、2 列目 = 開発指針の file 名 (この dir からの相対。空白区切りで複数可)
+# 指針の file が無い言語は行を置かない (行を足すときは同じ dir に指針の file を置く)
+go	golang.md go-concurrency.md go-modern-idioms.md go-performance.md go-test-stability.md
+ts	typescript.md
+tsx	typescript.md
+mts	typescript.md
+cts	typescript.md

@@ -17,7 +17,7 @@ disable-model-invocation: true
 | `/specramo:phase-design` | Phase n の実装形 (公開する型と操作 / 問い合わせの方針 / TX / テスト観点) を、既存 code の調査から決める。単純な Phase では省く |
 | `/specramo:implement` | 作業計画書の Phase n だけを実装する |
 
-Design Doc を作る線引き (API が増える / DB が変わる / 画面が 2 つ以上変わる) に当たらない小さな変更は、Design Doc なしで要件の 1 文から直接この command に入ってよい。
+Design Doc を作る線引き (外部 interface が増える / 保存データの形が変わる / 画面が 2 つ以上変わる) に当たらない小さな変更は、Design Doc なしで要件の 1 文から直接この command に入ってよい。
 
 ## Step 0: 前提確認と雛形の解決
 
@@ -39,10 +39,10 @@ Design Doc を作る線引き (API が増える / DB が変わる / 画面が 2 
 
 `--update` (または `作業計画書を直して` `反映して` と既存の作業計画書) のときは全体を再生成せず、影響する Phase だけを Edit する。plugin を更新した後の既存の作業計画書も再生成せず、作業計画書検査 (Step 4) を適用して FAIL と WARN の項目だけを Edit する。運用の詳細は同梱の `phase-anatomy.md` 「`--update` の運用」。
 
-1. Design Doc を Read する。「受け入れ条件」の表を最初に取り、Phase 分割の材料にする。条件は ID を保持しないので、先頭 20 字程度を引用して指す。各条件をどの test (API test / unit test / 手動) で確かめるかは Design Doc に無いので、この command が Phase の完了条件として決める
-2. Phase の候補は Design Doc の Implementation Surface (API / Read / Write / 画面の表) から取り、各行をどの Phase に割り当てるかをこの command で決める。
+1. Design Doc を Read する。「受け入れ条件」の表を最初に取り、Phase 分割の材料にする。条件は ID を保持しないので、先頭 20 字程度を引用して指す。各条件をどの test (API test / CLI の結合 test / unit test / 手動 等、repo にある種類) で確かめるかは Design Doc に無いので、この command が Phase の完了条件として決める
+2. Phase の候補は Design Doc の Implementation Surface (API / Read / Write / 画面 / Interfaces の表のうち DD にあるもの) から取り、各行をどの Phase に割り当てるかをこの command で決める。
    - 操作名・問い合わせ・呼び出し元はここで決めず、`/specramo:phase-design` が Phase ごとに決める。method の存在は Design Doc が、どの Phase で作るかは作業計画書が、実装形は Phase 詳細設計が決める
-   - 500 行を超える Design Doc は全文を読まず、見出しの一覧から範囲・目標・非目標・API の一覧・DB 設計・UI の変更・リリース計画・既存の不具合の修正の節だけを読む
+   - 500 行を超える Design Doc は全文を読まず、見出しの一覧から範囲・目標・非目標・外部 interface の一覧・保存データの設計・UI の変更・リリース計画・既存の不具合の修正の節だけを読む
    - 1 文の要件なら、それを「目的」に置き、Design Doc の欄は「未作成」と記載する
 3. 雛形の節を勝手に減らさず、記載することが無い節は「該当なし」1 行にする。進捗の記録のように実装前には埋められない節は、見出しと「実装中に記入」の 1 行だけにする
 
@@ -70,10 +70,10 @@ Design Doc に記載された API / Query / Command / 画面ごとに、既存 c
 | マージ順序の図 | 実装と merge の順序 | 作業計画書の `マージ順序と依存関係` |
 
 - 列は `| 層 | 名前 | 責務 | 変更 |` の 4 つにする。
-  - `層` は repo が宣言する層名、宣言が無い repo は実在する構成単位 (module / package / 画面 / 外部連携 等) の名前、`名前` はその中の部品名で、1 つの列にまとめない
+  - `層` は repo が宣言する層名 (Clean Architecture / MVC / hexagonal など repo の採る構成の語)、宣言が無い repo は実在する構成単位 (module / package / 画面 / 外部連携 / CLI の subcommand 等) の名前、`名前` はその中の部品名で、1 つの列にまとめない
   - `責務` はその部品が今回の機能で担うことを 1 句で記載する
   - `変更` は変更する層に `★ PR #n`、変更しない層に `変更なし` を記載する
-- 行は依存の向きで内側 (業務の中心) から外側 (入出力の境界) の順に上から並べる
+- 行は依存の向きで内側 (業務の中心) から外側 (入出力の境界) の順に上から並べる。依存の向きが無い構成 (script の集まり / 単一の package) では処理が通る順に並べる。特定の architecture の層名 (Entity / UseCase 等) を repo に無いまま持ち込まない
 - **行にする層は、作業計画書から実在を確認できた箇所だけにし、推測で補わない**
 - 変更の中身と操作名と問い合わせは表に含めない (各 PR の `対象` に記載する)
 
@@ -146,7 +146,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/spec-gate.sh" <作業計画書の path>
 - **同じ実測値を 2 つ以上の節へ転記していない**。複数の節で必要になる値は、正本の節を 1 つ決めて他の節はそこを参照する。**参照する側は値を書き写さず、正本の節名だけを記載する**。合計を記載するときは内訳から再計算した値にする
 - **`影響範囲` の先頭に Change Map の表があり、変更しない層も行になっていて、変更する層の `変更` 列に `★` が付いている** (作業計画書検査の `change-map` が判定する)。作業計画書から確認できない層を推測して行にしていない
 - **`処理フロー` に `★` の付いた手順があり、その手順の末尾に担当 PR が添えてある** (作業計画書検査の `flow-mark` が判定する)
-- Phase の合計が Design Doc の API / 画面 / Query / Command の数と一致する (不足も余剰も無い。責務の数で数え、method 名では数えない)。受け入れ条件の全行と、Design Doc が PRD から参照している条件の全部が、いずれか 1 つの Phase に割り当てられている (割り当ての不足は Design Doc 側の不足なので `/specramo:design --update` へ戻す)。層切りした途中の Phase は「担当条件: なし」でよい
+- Phase の合計が Design Doc の API / 画面 / Interfaces / Query / Command の数 (DD にある表の分だけ) と一致する (不足も余剰も無い。責務の数で数え、method 名では数えない)。受け入れ条件の全行と、Design Doc が PRD から参照している条件の全部が、いずれか 1 つの Phase に割り当てられている (割り当ての不足は Design Doc 側の不足なので `/specramo:design --update` へ戻す)。層切りした途中の Phase は「担当条件: なし」でよい
 - Phase が 3 つ以上のとき「目的と実装の対応」があり、その表の条件と Phase が本文の受け入れ条件と Phase を過不足なく参照している。**表の条件の数を Design Doc の受け入れ条件の数と突き合わせる**
 - **「目的と実装の対応」に Mermaid の図が無い**。3 PR 以上のとき、依存の向きが記載されている
 - 制約を削除する Phase があるとき、「削除した後の担い手」の Phase が同じ計画書にあり、2 つの間隔がマージ順序の節に記載されている

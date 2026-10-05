@@ -1,5 +1,5 @@
 ---
-description: 機能ごとに Phase の進み具合 (未着手 / 実装中 / レビュー済み / PR 作成済み) を表示する。レビュー済みの Phase は GitHub の PR の有無を確かめて状態を更新する。「specramo の進み具合」「status 見せて」で使う。
+description: 機能ごとに Phase の進み具合 (未着手 / 実装中 / レビュー済み / PR 作成済み) を表示する。レビュー済みの Phase は PR の有無 (既定は GitHub、設定で差し替え可) を確かめて状態を更新する。「specramo の進み具合」「status 見せて」で使う。
 disable-model-invocation: true
 ---
 
@@ -22,9 +22,10 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/status.sh"
 ```
 
 - 表示をそのまま利用者に示す。表の行を並べ替えたり、状態を書き換えたりしない
-- 状態が「レビュー済み」の Phase は、script が作業計画書の `branch:` の PR を GitHub で確かめ、PR があれば「PR 作成済み」に更新してから表示する
+- 状態が「レビュー済み」の Phase は、script が作業計画書の `branch:` の PR を確かめ (設定 file の `pr_check_command`、未記入なら GitHub CLI)、PR があれば「PR 作成済み」に更新してから表示する
 - 「GitHub に問い合わせられず」の行があれば、`gh auth status` で GitHub CLI の認証を確かめるよう 1 行添える
-- 「GitHub の remote が無いため」の行があれば、`git remote add origin <GitHub の URL>` で remote を登録するよう 1 行添える
+- 「GitHub の remote が無いため」の行があれば、GitHub を使うなら `git remote add origin <GitHub の URL>` で remote を登録し、GitHub 以外 (GitLab 等) なら設定 file の `pr_check_command` を記入するよう 1 行添える
+- 「pr_check_command が失敗し」の行があれば、その command を shell で直接実行して原因を確かめるよう 1 行添える
 
 ## Step 2: この後のコマンドの案内
 

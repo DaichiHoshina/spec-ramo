@@ -5,7 +5,7 @@
 Spec Ramo is a Claude Code plugin for spec-driven development. It splits a spec into Phases, one pull request each, and has the implementer understand each Phase before moving on to the next.
 
 - Name: spec + ramo (Spanish / Italian for "branch"). A spec branches out into one PR per Phase
-- Status: v0.3.0
+- Status: v0.4.2
 - The skills and generated documents are written in Japanese
 
 ## What it does
@@ -69,12 +69,15 @@ Repeat steps 5 to 9 for each Phase. You open the PRs yourself; Spec Ramo never o
 
 ## Assumptions
 
-The workflow and check scripts assume backend development of a web API backed by a relational database.
+The workflow does not depend on a language, architecture, or code layout. It works for web APIs, CLIs, libraries, batch jobs, and frontends alike. Some check scripts and bundled guidelines are narrower:
 
-- Language guidelines (one of the `/specramo:review` perspectives) exist only for Go and TypeScript. Other languages work, but that perspective is skipped
-- The design checks assume HTTP status codes and MySQL locking (`SELECT ... FOR UPDATE`, gap locks). PostgreSQL locks behave differently, so adjust the findings accordingly
-- The table-reader count (`scripts/table-readers.sh`) matches SQL strings (`FROM` / `JOIN`) only. It does not count reads through ORM methods, so check callers separately in ORM-based repos
-- For CLI-only, batch-only, or frontend-only changes, some design checks (such as counting status codes) do not apply
+- The Design Doc's Implementation Surface holds only the tables that fit what you build. Without a web API or screens, omit those tables; the check treats them as not applicable and passes
+- Language guidelines (one of the `/specramo:review` perspectives) are chosen by the extension table `guidelines/languages/extensions.tsv`. Guidelines for Go and TypeScript are bundled; for languages without a row, that perspective runs without a guideline
+- The plan's Change Map uses the layer names your repo declares (or real units such as modules and packages when none are declared). No particular architecture is assumed
+- `/specramo:status` asks the GitHub CLI (`gh`) whether a PR exists by default. On GitLab or other hosts, set `pr_check_command` in the config file
+- Aligning table columns is optional. Use your repo's markdown formatter (such as prettier) if it has one
+- Some data checks assume a relational database. The soft-delete/uniqueness check is explained in terms of MySQL locking (`SELECT ... FOR UPDATE`, gap locks); adjust for PostgreSQL. The table-reader count (`scripts/table-readers.sh`) matches SQL strings (`FROM` / `JOIN`) only, so check callers separately in ORM-based or non-RDB repos
+- The HTTP status check in the design gate only warns, and does not apply to changes without a web API
 
 ## When not to use it
 
@@ -91,6 +94,7 @@ Keys in `.specramo/config.yml`:
 | `test_paths` | none | Path patterns of test files excluded from the line count |
 | `branch_pattern` | none | Shape of Phase branch names (e.g. `phase/<PR>-<slug>`). When empty, only the presence of a name is checked |
 | `rules` | none | Rule files that review agent C reads. When empty, the files in `.claude/rules/` are used |
+| `pr_check_command` | none | Command `/specramo:status` runs to check whether a branch has a PR; `{branch}` is replaced with the branch name. Exit 0 with output = PR exists, exit 0 with no output = no PR, non-zero = could not check. When empty, `gh pr list` is used (e.g. `glab mr list --source-branch {branch} --all --output json | jq '.[].iid'`) |
 
 The environment variable `SPECRAMO_REVIEW_DATA_DIR` points review agent B at your team's review-finding data (default `~/.config/specramo/review-data/`). This data is built from your team's past reviews and contains internal information, so keep it out of the repo. If the directory has no files, agent B is not started.
 

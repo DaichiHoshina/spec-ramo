@@ -26,7 +26,13 @@ specramo_config_get() {
   local file="$1" key="$2"
   [ -f "$file" ] || return 1
   awk -v key="$key" '
-    function trim(s) { sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s); gsub(/^["\x27]|["\x27]$/, "", s); return s }
+    function trim(s,  q) {
+      sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s)
+      # 両端が同じ引用符のときだけ外す (command の末尾の引用符を値の一部として残す)
+      q = substr(s, 1, 1)
+      if (length(s) >= 2 && (q == "\"" || q == "\x27") && substr(s, length(s), 1) == q) s = substr(s, 2, length(s) - 2)
+      return s
+    }
     /^[^ \t#][^:]*:/ {
       if (inlist) exit
       k = $0; sub(/:.*/, "", k)

@@ -25,15 +25,15 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/require-config.sh"
 1. 作業計画書を Read する。`--phase` 省略時は、現在の branch 名を作業計画書の各 PR の `branch:` 行と照合して Phase を特定し、Phase 名を 1 行宣言する。一致が無ければ「Phase の状態」の表で「実装中」の最初の行を採用する。
 2. Phase の 対象 / 対象外 / 実装への指針 を読む。作業計画書冒頭の `- Design Doc:` 行に path があれば、その Design Doc の受け入れ条件の表も読む。同じ dir に Phase 詳細設計 `plan-phase<n>.md` があれば、`### 変更対象 file` と契約の節を読む (冒頭に「無効」とあるものは使わない)。
 3. 作業計画書が Phase を複数の PR に分ける条件を定めているときは、review の範囲を分割後の PR に合わせる。後ろの PR へ回った作業は「対象外 (後続 PR で対応)」として全エージェントの prompt に渡す。
-4. 差分の base を決める。作業計画書の `依存:` にある前 Phase の branch が未 merge ならその branch、merge 済みか依存なしなら default branch とし、`git merge-base` の結果を 1 行記載する。`/specramo:implement` は commit しないので、差分は merge-base から作業ツリーまで (`git diff <merge-base>` に `git ls-files --others --exclude-standard` の未追跡 file を加えたもの) とし、`<base>...HEAD` の commit 済み分だけを読まない。commit 済みの差分も作業ツリーの変更も無いときだけ「review 対象なし」で終える。
+4. 差分の base を決める。作業計画書の `依存:` にある前 Phase の branch が未 merge ならその branch、merge 済みか依存なしなら default branch とし、`git merge-base` の結果を 1 行記載する。`/specramo:implement` は commit しないので、差分は merge-base から作業ツリーまで (未 commit の変更と未追跡の file を含む) とする。commit 済みの差分も作業ツリーの変更も無いときだけ「review 対象なし」で終える。
 
 ## Step 2: 起動するエージェントを決める
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/select-review-agents.sh" . $(git diff --name-only <base>...HEAD)
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/select-review-agents.sh" . $(git diff --name-only <merge-base>) $(git ls-files --others --exclude-standard)
 ```
 
-2 番目以降の引数は差分の file 名で、D に渡す開発指針を拡張子で決める (`.go` なら Go の 5 本、`.ts` / `.tsx` なら TypeScript の 1 本)。表示は 1 行 1 エージェントの tab 区切りで、`run` か `skip` と、渡す値か省いた理由が並ぶ。`warn` の行は C の規約の path が存在しない警告になる。
+2 番目以降の引数は差分の file 名で、D に渡す開発指針を拡張子で決める (対応は `guidelines/languages/extensions.tsv`。表に行が無い言語では開発指針なしで D を起動する)。表示は 1 行 1 エージェントの tab 区切りで、`run` か `skip` と、渡す値か省いた理由が並ぶ。`warn` の行は C の規約の path が存在しない警告になる。
 
 - `skip` の行の理由と `warn` の行は、そのまま利用者に表示する
 - 起動するのは `run` の行のエージェントだけにする。この表示と異なる判断で起動したり省いたりしない
@@ -47,15 +47,16 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/select-review-agents.sh" . $(git diff --name
 
 ## Step 3: 並列に起動する
 
-`run` の行のエージェントを 1 つの message で並列に起動する。各 prompt に `scope: i/<起動数>` と、Step 1 の base からの差分 (未 commit の変更と未追跡の file を含む) の取り方を記載する。各エージェントは他のエージェントの結果を受け取らずに指摘を返す。
+`run` の行のエージェントを 1 つの message で並列に起動する。各 prompt に `scope: i/<起動数>` と「commit を順に読む前提の指摘 (commit の往復 / 並び順) は返さない」を記載する。各エージェントは他のエージェントの結果を受け取らずに指摘を返す。
 
 C が「読めなかった file」を返したときは、C の結果を採らず、その旨を表示する。
 
 ## Step 4: 統合と出力
 
 - 同じ `file:line` の指摘は 1 件にまとめ、どのエージェントが出したかを添える。重大度が一致しないときは高い方を採る
+- commit を順に読む前提の指摘 (commit の往復 / 並び順) は捨てる。reviewer は全 commit をまとめた PR の diff を読む
 - 保存データの構造変更への指摘は、`/specramo:implement` Step 3 と同じ使い捨ての環境で、指摘した箇所と修正案の両方を実行して確かめてから出力する。実行できなかったときは、指摘と修正案に「未検証」と添える。修正案も実行するまで正しいか分からず、確かめない修正案は別のエラーになりうる
-- test の結果を確かめるときは、`/specramo:implement` の完了報告の「検証」行にある command と環境変数で実行する。その行が無いか、同じ条件で実行できなかったときは「未検証」と添える
+- test の結果を確かめるときは、`/specramo:implement` の完了報告の「検証」行にある command と環境変数で、エージェントでなくこの skill を実行している側が 1 回実行する。エージェントに任せると、起動した全エージェントが同じ test を並列に実行するうえ、Bash の許可が下りない環境では誰も実行しないまま終わる。保存データの構造変更の確認も同じく、この skill を実行している側が行う。その行が無いか、同じ条件で実行できなかったときは「未検証」と添える
 - 出力の冒頭に次の 3 行を置き、`${CLAUDE_PLUGIN_ROOT}/skills/review/perspectives.md` の出力の形で Critical と Warning を並べる
 
 ```

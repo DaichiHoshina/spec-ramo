@@ -25,6 +25,13 @@ EOF
   [ "${lines[1]}" = "<issue>-<PR>" ]
 }
 
+@test "config: 両端が同じ引用符でない値は、末尾の引用符を値の一部として残す" {
+  printf '%s\n' "pr_check_command: glab mr list --source-branch {branch} | jq '.[].iid'" >> "$CONF"
+  run bash -c ". '$LIB'; specramo_config_get '$CONF' pr_check_command"
+  [ "$status" -eq 0 ]
+  [ "$output" = "glab mr list --source-branch {branch} | jq '.[].iid'" ]
+}
+
 @test "config: list の値を 1 行 1 要素で読む" {
   run bash -c ". '$LIB'; specramo_config_get '$CONF' test_paths"
   [ "$status" -eq 0 ]

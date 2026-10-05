@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # spec 型 Design Doc の script 判定 gate。/specramo:design の品質 gate から呼ぶ。
-# 判定 8 項目: (1) Implementation Surface の合計 1 行と表の行数の一致
+# 判定 8 項目: (1) Implementation Surface の合計 1 行と表の行数の一致 (API と画面の表が無い変更は対象なしで PASS)
 #             (2) 未確定 marker と「決める時点 = 作業計画書作成前 / DD レビュー」の残存
 #             (3) 「受け入れ条件」 / 振る舞い / 決定事項 の識別子・HTTP status (warn)
 #             (4) 決定事項の表 cell 長 (160 字超は読めない)
@@ -54,22 +54,35 @@ table_rows() {
 BEHAVIOR_PAT='Behavior|振る舞い|Proposed Design'
 
 # (1) 合計 1 行と表の行数
+# API も画面も持たない変更 (CLI、batch、library、組み込み 等) では Backend API と Frontend の表を作らない。
+# 表が無く合計にも数が無い項目は「対象なし」として PASS にし、表か合計の片方だけにあるときに食い違いとして扱う
+api_body=$(section 'Backend API')
+api_rows=$(printf '%s\n' "$api_body" | table_rows endpoint)
+api_read=$(printf '%s\n' "$api_body" | grep -c '^| `[^|]*| *Read ')
+api_write=$(printf '%s\n' "$api_body" | grep -c '^| `[^|]*| *Write ')
+fe_rows=$(section 'Frontend' | table_rows 画面)
 total_line=$(section '4\. Implementation Surface|Implementation Surface' | grep -m1 '^合計')
 if [ -z "$total_line" ]; then
-  report FAIL surface-total '合計 1 行が無い'
+  if [ "$api_rows" -eq 0 ] && [ "$fe_rows" -eq 0 ]; then
+    report PASS surface-total 'API と画面の表が無い (合計 1 行は任意)'
+  else
+    report FAIL surface-total '合計 1 行が無い'
+  fi
 else
   api_total=$(printf '%s' "$total_line" | grep -oE 'API[^0-9]*[0-9]+ 本' | grep -oE '[0-9]+' | head -1)
   read_total=$(printf '%s' "$total_line" | grep -oE 'Read [0-9]+' | head -1 | grep -oE '[0-9]+')
   write_total=$(printf '%s' "$total_line" | grep -oE 'Write [0-9]+' | head -1 | grep -oE '[0-9]+')
   screen_total=$(printf '%s' "$total_line" | grep -oE '画面 [0-9]+' | grep -oE '[0-9]+')
-  api_body=$(section 'Backend API')
-  api_rows=$(printf '%s\n' "$api_body" | table_rows endpoint)
-  api_read=$(printf '%s\n' "$api_body" | grep -c '^| `[^|]*| *Read ')
-  api_write=$(printf '%s\n' "$api_body" | grep -c '^| `[^|]*| *Write ')
-  fe_rows=$(section 'Frontend' | table_rows 画面)
-  if [ "${api_total:-x}" = "$api_rows" ]; then report PASS surface-api "合計 ${api_total} 本 = 表 ${api_rows} 行"; else report FAIL surface-api "合計 ${api_total:-?} 本 / 表 ${api_rows} 行"; fi
-  if [ "${read_total:-x}" = "$api_read" ] && [ "${write_total:-x}" = "$api_write" ]; then report PASS surface-rw "Read ${api_read} / Write ${api_write}"; else report FAIL surface-rw "合計 Read ${read_total:-?} / Write ${write_total:-?}、表 Read ${api_read} / Write ${api_write}"; fi
-  if [ -z "$screen_total" ]; then report WARN surface-screen '合計に画面の数が無い'; elif [ "$screen_total" = "$fe_rows" ]; then report PASS surface-screen "画面 ${fe_rows}"; else report FAIL surface-screen "合計 画面 ${screen_total} / 表 ${fe_rows} 行"; fi
+  if [ -z "$api_total" ] && [ "$api_rows" -eq 0 ]; then report PASS surface-api 'API の変更なし'
+  elif [ "${api_total:-x}" = "$api_rows" ]; then report PASS surface-api "合計 ${api_total} 本 = 表 ${api_rows} 行"
+  else report FAIL surface-api "合計 ${api_total:-?} 本 / 表 ${api_rows} 行"; fi
+  if [ -z "$api_total" ] && [ "$api_rows" -eq 0 ]; then report PASS surface-rw 'API の変更なし'
+  elif [ "${read_total:-x}" = "$api_read" ] && [ "${write_total:-x}" = "$api_write" ]; then report PASS surface-rw "Read ${api_read} / Write ${api_write}"
+  else report FAIL surface-rw "合計 Read ${read_total:-?} / Write ${write_total:-?}、表 Read ${api_read} / Write ${api_write}"; fi
+  if [ -z "$screen_total" ] && [ "$fe_rows" -eq 0 ]; then report PASS surface-screen '画面の変更なし'
+  elif [ -z "$screen_total" ]; then report WARN surface-screen '合計に画面の数が無い'
+  elif [ "$screen_total" = "$fe_rows" ]; then report PASS surface-screen "画面 ${fe_rows}"
+  else report FAIL surface-screen "合計 画面 ${screen_total} / 表 ${fe_rows} 行"; fi
 fi
 
 # (2) 未確定の残存
