@@ -25,7 +25,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/require-config.sh"
 1. 作業計画書を Read する。`--phase` 省略時は、現在の branch 名を作業計画書の各 PR の `branch:` 行と照合して Phase を特定し、Phase 名を 1 行宣言する。一致が無ければ「Phase の状態」の表で「実装中」の最初の行を採用する。
 2. Phase の 対象 / 対象外 / 実装への指針 を読む。作業計画書冒頭の `- Design Doc:` 行に path があれば、その Design Doc の受け入れ条件の表も読む。同じ dir に Phase 詳細設計 `plan-phase<n>.md` があれば、`### 変更対象 file` と契約の節を読む (冒頭に「無効」とあるものは使わない)。
 3. 作業計画書が Phase を複数の PR に分ける条件を定めているときは、review の範囲を分割後の PR に合わせる。後ろの PR へ回った作業は「対象外 (後続 PR で対応)」として全エージェントの prompt に渡す。
-4. 差分の base を決める。作業計画書の `依存:` にある前 Phase の branch が未 merge ならその branch、merge 済みか依存なしなら default branch とし、`git merge-base` の結果を 1 行記載する。差分が空なら「review 対象なし」で終える。
+4. 差分の base を決める。作業計画書の `依存:` にある前 Phase の branch が未 merge ならその branch、merge 済みか依存なしなら default branch とし、`git merge-base` の結果を 1 行記載する。`/specramo:implement` は commit しないので、差分は merge-base から作業ツリーまで (`git diff <merge-base>` に `git ls-files --others --exclude-standard` の未追跡 file を加えたもの) とし、`<base>...HEAD` の commit 済み分だけを読まない。commit 済みの差分も作業ツリーの変更も無いときだけ「review 対象なし」で終える。
 
 ## Step 2: 起動するエージェントを決める
 
@@ -47,7 +47,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/select-review-agents.sh" . $(git diff --name
 
 ## Step 3: 並列に起動する
 
-`run` の行のエージェントを 1 つの message で並列に起動する。各 prompt に `scope: i/<起動数>` を記載する。各エージェントは他のエージェントの結果を受け取らずに指摘を返す。
+`run` の行のエージェントを 1 つの message で並列に起動する。各 prompt に `scope: i/<起動数>` と、Step 1 の base からの差分 (未 commit の変更と未追跡の file を含む) の取り方を記載する。各エージェントは他のエージェントの結果を受け取らずに指摘を返す。
 
 C が「読めなかった file」を返したときは、C の結果を採らず、その旨を表示する。
 

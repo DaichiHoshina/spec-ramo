@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
-# table-readers.sh と phase-gate.sh: table を読む query を全件数えることと、Phase 詳細設計の件数が実物と一致するかの判定。
+# table-readers.sh と phase-gate.sh: table を読む query を全件数えることと、
+# 意味が変わる table の宣言・件数の一致・query ごとの扱いの判定。
 
 setup() {
   PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
@@ -21,22 +22,19 @@ EOF
   DOC="$REPO/.specramo/specs/f/plan-phase1.md"
 }
 
-write_doc() { # $1 = 節に記載する件数、$2 = 「複数行の扱い:」の行数 (省略時 2)
-  cat > "$DOC" <<EOF
-# Phase 詳細設計
-
-1. 論理削除した行を読み取りから除く
-
-## 実装メモ
-
-### table を読む query
-
-table: \`items\`
-pkg/reader/item.go:1: q := "SELECT id FROM items WHERE order_id = ?"
-合計 $1 件
-EOF
-  local i
-  for i in $(seq 1 "${2:-2}"); do printf -- '- 複数行の扱い: 1 件以下が保証される (id で引く)\n' >> "$DOC"; done
+write_doc() { # $1 = 節に記載する件数、$2 = 扱いの行数 (省略時は $1 と同じ)、$3 = 意味が変わる table の宣言 (省略時は items)
+  local decided="${2:-$1}" decl="${3:-\`items\`}" i
+  {
+    printf '# Phase 詳細設計\n\n1. 状態に「保留」を追加し、一覧から除く\n\n'
+    printf '意味が変わる table: %s\n\n' "$decl"
+    printf '## 実装メモ\n\n### table を読む query\n\n'
+    printf 'table: `items`\n'
+    printf 'pkg/reader/item.go:1: q := "SELECT id FROM items WHERE order_id = ?"\n'
+    for ((i = 0; i < decided; i++)); do
+      echo "- 扱い: 変更する (保留の行を除く条件を追加する)"
+    done
+    echo "合計 $1 件"
+  } > "$DOC"
 }
 
 @test "table-readers: FROM と JOIN の行を数え、test と migration と別名の table を除く" {
@@ -57,11 +55,25 @@ EOF
   [ "$status" -eq 2 ]
 }
 
-@test "phase-gate: 論理削除を扱わない詳細設計は PASS" {
+@test "phase-gate: 意味が変わる table の宣言が無ければ FAIL" {
   printf '# Phase 詳細設計\n\n1. 一覧に列を追加する\n' > "$DOC"
   run bash "$GATE" "$DOC"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  declaration  「意味が変わる table: <table 名> / なし」の行が無い'
+}
+
+@test "phase-gate: 意味が変わる table が なし なら、節が無くても PASS" {
+  printf '# Phase 詳細設計\n\n1. 一覧に列を追加する\n\n- 意味が変わる table: なし\n' > "$DOC"
+  run bash "$GATE" "$DOC"
   [ "$status" -eq 0 ]
-  printf '%s\n' "$output" | grep -q '^PASS  table-readers  行の意味が変わる変更なし'
+  printf '%s\n' "$output" | grep -q '^PASS  declaration  意味が変わる table なし'
+}
+
+@test "phase-gate: 宣言の table 名に記号があれば FAIL" {
+  write_doc 2 2 'items; drop'
+  run bash "$GATE" "$DOC"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  declaration  「items;」は table 名として読めない'
 }
 
 @test "phase-gate: 節の件数が改めて数えた件数と一致すれば PASS" {
@@ -69,23 +81,6 @@ EOF
   run bash "$GATE" "$DOC"
   [ "$status" -eq 0 ]
   printf '%s\n' "$output" | grep -q '^PASS  table-readers  items: 合計 2 件'
-  printf '%s\n' "$output" | grep -q '^PASS  table-readers-multiplicity  items: 複数行の扱いを 2 件記載'
-}
-
-@test "phase-gate: 複数行の扱いの行が query の件数より少なければ FAIL" {
-  write_doc 2 1
-  run bash "$GATE" "$DOC"
-  [ "$status" -eq 1 ]
-  printf '%s\n' "$output" | grep -q '^PASS  table-readers  items: 合計 2 件'
-  printf '%s\n' "$output" | grep -q '^FAIL  table-readers-multiplicity  items: 複数行の扱いが 1 件、query は 2 件'
-}
-
-@test "phase-gate: 複数行の扱いの値が 3 つのどれでもなければ数えない" {
-  write_doc 2 2
-  sed -i.bak 's/1 件以下が保証される (id/未定 (id/' "$DOC"
-  run bash "$GATE" "$DOC"
-  [ "$status" -eq 1 ]
-  printf '%s\n' "$output" | grep -q '^FAIL  table-readers-multiplicity  items: 複数行の扱いが 0 件'
 }
 
 @test "phase-gate: 節の件数が実物より少なければ FAIL" {
@@ -95,19 +90,73 @@ EOF
   printf '%s\n' "$output" | grep -q '^FAIL  table-readers  items: 節は 1 件、改めて数えると 2 件'
 }
 
-@test "phase-gate: 論理削除を扱うのに「table を読む query」の節が無ければ FAIL" {
-  printf '# Phase 詳細設計\n\n1. deleted_at を条件に追加する\n' > "$DOC"
+@test "phase-gate: 宣言したのに「table を読む query」の節が無ければ FAIL" {
+  printf '# Phase 詳細設計\n\n意味が変わる table: items\n' > "$DOC"
   run bash "$GATE" "$DOC"
   [ "$status" -eq 1 ]
   printf '%s\n' "$output" | grep -q '^FAIL  table-readers  「table を読む query」の節が無い'
 }
 
-@test "phase-gate: 節に table 名の行が無ければ FAIL" {
+@test "phase-gate: 宣言した table の行が節に無ければ FAIL" {
   write_doc 2
   sed -i.bak '/^table:/d' "$DOC"
   run bash "$GATE" "$DOC"
   [ "$status" -eq 1 ]
-  printf '%s\n' "$output" | grep -q '^FAIL  table-readers  節に「table: <table 名>」の行が無い'
+  printf '%s\n' "$output" | grep -q '^FAIL  table-readers  items: 節に「table: items」の行が無い'
+}
+
+@test "phase-gate: 宣言した table が 2 つなら、節に無い方だけ FAIL" {
+  write_doc 2 2 'items, orders'
+  run bash "$GATE" "$DOC"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^PASS  table-readers  items: 合計 2 件'
+  printf '%s\n' "$output" | grep -q '^FAIL  table-readers  orders: 節に「table: orders」の行が無い'
+}
+
+@test "phase-gate: 件数が合い、query ごとに扱いがあれば decision も PASS" {
+  write_doc 2
+  run bash "$GATE" "$DOC"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q '^PASS  table-readers-decision  items: 扱いを 2 件記載 (query 2 件)'
+}
+
+@test "phase-gate: 扱いが query の件数に足りなければ FAIL" {
+  write_doc 2 1
+  run bash "$GATE" "$DOC"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  table-readers-decision  items: 扱いが 1 件、query は 2 件'
+}
+
+@test "phase-gate: 扱いの値が規定外か根拠が無ければ数えず FAIL" {
+  write_doc 2 0
+  { echo "- 扱い: 未定"; echo "- 扱い: 変更しない"; } >> "$DOC"
+  run bash "$GATE" "$DOC"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  table-readers-decision  items: 扱いが 0 件、query は 2 件'
+}
+
+@test "phase-gate: 変更しないと根拠があれば数える (全角の括弧も数える)" {
+  write_doc 2 0
+  { echo "- 扱い: 変更しない (管理画面は保留の行も表示するため)"; echo "- 扱い: 変更する（一覧から保留の行を除く）"; } >> "$DOC"
+  run bash "$GATE" "$DOC"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q '^PASS  table-readers-decision  items: 扱いを 2 件記載'
+}
+
+@test "phase-gate: 以前の形の「複数行の扱い」も扱いとして数える" {
+  write_doc 2 0
+  { echo "- 複数行の扱い: 最新 1 件だけを対象にする (ORDER BY id DESC LIMIT 1)"; echo "- 複数行の扱い: 1 件以下が保証される (登録経路の行ロック)"; } >> "$DOC"
+  run bash "$GATE" "$DOC"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q '^PASS  table-readers-decision  items: 扱いを 2 件記載'
+}
+
+@test "phase-gate: 名前が前方一致する別の table の節にある扱いは数えない" {
+  write_doc 2 0
+  printf 'table: items_archive\n- 扱い: 変更する (別 table)\n- 扱い: 変更する (別 table)\n' >> "$DOC"
+  run bash "$GATE" "$DOC"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  table-readers-decision  items: 扱いが 0 件'
 }
 
 @test "phase-gate: 引数が無いか file が無ければ usage で exit 2" {
@@ -115,4 +164,26 @@ EOF
   [ "$status" -eq 2 ]
   run bash "$GATE" "${BATS_TEST_TMPDIR}/nope.md"
   [ "$status" -eq 2 ]
+}
+
+@test "phase-gate: 設計書が repo の外にあっても、cwd が repo の中なら cwd の repo で数える" {
+  write_doc 2
+  OUT="${BATS_TEST_TMPDIR}/plans"
+  mkdir -p "$OUT"
+  mv "$DOC" "$OUT/plan-phase1.md"
+  cd "$REPO"
+  run bash "$GATE" "$OUT/plan-phase1.md"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q '^PASS  table-readers  items: 合計 2 件'
+}
+
+@test "phase-gate: 設計書の dir も cwd も repo の外なら FAIL" {
+  write_doc 2
+  OUT="${BATS_TEST_TMPDIR}/plans"
+  mkdir -p "$OUT"
+  mv "$DOC" "$OUT/plan-phase1.md"
+  cd "$OUT"
+  GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR" run bash "$GATE" "$OUT/plan-phase1.md"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q 'cwd も git の repo の外'
 }
