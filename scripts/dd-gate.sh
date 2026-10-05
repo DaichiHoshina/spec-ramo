@@ -6,7 +6,7 @@
 #             (4) 決定事項の表 cell 長 (160 字超は読めない)
 #             (5) 分岐のある受け入れ条件が 2 行以上あるのに振る舞いの図も番号付き手順も無い (warn)
 #             (6) 受け入れ条件と振る舞いに曖昧な形容 (適切に / 堅牢 等) が残っている (warn)
-#             (7) 論理削除と一意性を扱う Data Schema に、登録経路のロックを確かめた担い手の表がある
+#             (7) 既存の制約を削除・緩和・変更する Data Schema に、引き継ぎ先と確かめた箇所を記載した担い手の表がある
 #             (8) 同じ Data Schema の先例が、現在の件数と撤回された件数で数えてある
 # 出力: 1 行 1 判定 (PASS / FAIL / WARN)。FAIL が 1 つでもあれば exit 1
 set -u
@@ -130,31 +130,45 @@ VAGUE_PAT='適切に|正しく|高速|堅牢|直感的|柔軟|十分|スムー�
 vague=$( { section 'Acceptance Criteria|受け入れ条件'; section "$BEHAVIOR_PAT"; } | grep -cE "$VAGUE_PAT" || true)
 if [ "$vague" -eq 0 ]; then report PASS vague-adjective '曖昧な形容 0'; else report WARN vague-adjective "曖昧な形容を含む行 ${vague} (測れる条件に書き換える)"; fi
 
-# (7)(8) 論理削除と一意性
-# 論理削除した行と一意性の制約は両立させにくく、書き手は DB の制約で守る案に寄りやすい。
-# 登録経路が既存のロックで直列化されていれば、制約を使わずに守る案も成り立つ。そこでロックを確かめた証拠の列を必須にする。
+# (7)(8) 既存の制約を削除・緩和・変更する変更
+# 制約 (UNIQUE / FK / NOT NULL / CHECK / 排他制御) を削除するか緩めると、その制約が守っていた不変条件を別の仕組みが引き継ぐ。
+# 書き手は引き継ぎ先を名前だけ記載しやすく、その仕組みが実際に守るかを確かめないまま DD が PASS する。
+# そこで担い手の表に「確かめた箇所」の列を必須にする (以前の列名「登録経路のロック」も受ける)。
 # 先例を migration の追加数で数えると、後から撤回された形を先例と誤認するので、現在と撤回の 2 つの件数を必須にする。
+# 起動は変更の種類で決める: 制約の削除・解除 / NULL の許可 / 型・長さ・キー範囲・参照動作の変更 / ENUM の値追加を記載した行があるか、担い手の表があるとき
+# 「変える・広げる」は制約語と同じ行のときだけ数える (列や index の新設は制約を弱めないので起動しない)。
+# 「追加」は ENUM だけに限る (UNIQUE や FK の追加は制約を強める側なので起動しない)。
 schema_body=$(section 'Data Schema')
-if printf '%s\n' "$schema_body" | grep -qE 'deleted_at|論理削除' && printf '%s\n' "$schema_body" | grep -qiE 'UNIQUE|一意'; then
-  lock_rows=$(printf '%s\n' "$schema_body" | awk -F'|' '
-    /^\|/ && !col { for (i = 2; i < NF; i++) if ($i ~ /登録経路のロック/) col = i; next }
-    col && /^\| *-/ { next }
-    col && /^\|/ { n++; c = $col; gsub(/[ \t]/, "", c); if (c == "" || c == "-" || c == "—") e++; next }
-    col && !/^\|/ { exit }
-    END { printf "%d %d %d\n", col, n, e }')
-  set -- $lock_rows
-  if [ "$1" -eq 0 ]; then report FAIL soft-delete-lock '担い手の表に「登録経路のロック」列が無い'
-  elif [ "$2" -eq 0 ]; then report FAIL soft-delete-lock '担い手の表に行が無い'
-  elif [ "$3" -gt 0 ]; then report FAIL soft-delete-lock "登録経路のロックが空の行 ${3}"
-  else report PASS soft-delete-lock "担い手 ${2} 行、全行に登録経路のロック"; fi
-  if printf '%s\n' "$schema_body" | grep '先例' | grep -E '現在 [0-9]+ 件' | grep -qE '撤回 [0-9]+ 件'; then
-    report PASS soft-delete-precedent '先例に現在と撤回の件数あり'
-  else
-    report FAIL soft-delete-precedent '先例に「現在 n 件 / 撤回 m 件」が無い'
-  fi
+RELAX_PAT='(UNIQUE|FK|NOT NULL|CHECK|一意|外部キー|排他|制約).*(削除|緩め|緩和|外し|外す|やめ|廃止)'
+RELAX_PAT+='|[Nn]ullable|NULL を許|NULL 許可'
+RELAX_PAT+='|(UNIQUE|PRIMARY KEY|主キー|[^A-Za-z]PK|ENUM|CASCADE|SET NULL|VARCHAR|CHAR\(|長さ|桁数|外部キー|一意|CHECK).*(広げ|拡張|変え|変更)'
+RELAX_PAT+='|ENUM.*追加'
+OWNER_COL_PAT='(削除|緩和|緩め|変更)[^|]*後の担い手'
+relax_lines=$(printf '%s\n' "$schema_body" | grep -E "$RELAX_PAT" || true)
+has_owner_table=$(printf '%s\n' "$schema_body" | grep -E "^\\|.*${OWNER_COL_PAT}" || true)
+if [ -z "$relax_lines" ] && [ -z "$has_owner_table" ]; then
+  report PASS invariant-owner '制約の削除・緩和なし'
+  report PASS invariant-precedent '制約の削除・緩和なし'
 else
-  report PASS soft-delete-lock '論理削除と一意性の組なし'
-  report PASS soft-delete-precedent '論理削除と一意性の組なし'
+  owner_rows=$(printf '%s\n' "$schema_body" | awk -F'|' -v ocp="$OWNER_COL_PAT" '
+    /^\|/ && !hdr { for (i = 2; i < NF; i++) { if ($i ~ ocp) oc = i; if ($i ~ /確かめた箇所|登録経路のロック/) ec = i }
+                    if (oc) hdr = 1; next }
+    hdr && /^\| *-/ { next }
+    hdr && /^\|/ { n++; o = $oc; gsub(/[ \t]/, "", o); e = (ec ? $ec : ""); gsub(/[ \t]/, "", e)
+                   if (o == "" || o == "-" || o == "—" || e == "" || e == "-" || e == "—") bad++; next }
+    hdr && !/^\|/ { exit }
+    END { printf "%d %d %d %d\n", hdr, ec, n, bad }')
+  set -- $owner_rows
+  if [ "$1" -eq 0 ]; then report FAIL invariant-owner '制約を削除するか緩めるのに、「削除・緩和した後の担い手」列のある担い手の表が無い'
+  elif [ "$2" -eq 0 ]; then report FAIL invariant-owner '担い手の表に「確かめた箇所」列が無い (引き継ぐ仕組みが実際に守ることを確かめた code の位置)'
+  elif [ "$3" -eq 0 ]; then report FAIL invariant-owner '担い手の表に行が無い'
+  elif [ "$4" -gt 0 ]; then report FAIL invariant-owner "削除・緩和した後の担い手か確かめた箇所が空の行 ${4}"
+  else report PASS invariant-owner "担い手 ${3} 行、全行に引き継ぎ先と確かめた箇所"; fi
+  if printf '%s\n' "$schema_body" | grep '先例' | grep -E '現在 [0-9]+ 件' | grep -qE '撤回 [0-9]+ 件'; then
+    report PASS invariant-precedent '先例に現在と撤回の件数あり'
+  else
+    report FAIL invariant-precedent '先例に「現在 n 件 / 撤回 m 件」が無い'
+  fi
 fi
 
 exit $fail

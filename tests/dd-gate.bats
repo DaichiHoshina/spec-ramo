@@ -208,56 +208,161 @@ insert_schema() {
   awk -v f="$block" '/^## 5\./ { while ((getline l < f) > 0) print l; print "" } { print }' "$DD" > "${DD}.new" && mv "${DD}.new" "$DD"
 }
 
-soft_delete_schema() { # $1 = 先例の行 $2 = 担い手の表の 1 行目の lock cell
+owner_schema() { # $1 = 先例の行 $2 = 担い手の表の 1 行目の確かめた箇所 $3 = 制約の行 $4 = 確かめた箇所の列名
+  local relax="${3:-index / 制約: 論理削除の deleted_at を追加し、注文 ID の UNIQUE を削除する}" col="${4:-確かめた箇所}"
   insert_schema <<EOF
 #### 物 (列追加)
 
 - $1
-- index / 制約: 論理削除の deleted_at を追加し、注文 ID の UNIQUE を削除する
+- $relax
 - 不変条件の担い手:
 
-| 何を守るか | 今どの仕組みが守るか | 削除する制約が防いでいた場面 | 削除した後の担い手 | 登録経路のロック |
+| 何を守るか | 今どの仕組みが守るか | 削除する制約が防いでいた場面 | 削除した後の担い手 | $col |
 | --- | --- | --- | --- | --- |
 | 有効な行は 1 注文 1 件 | UNIQUE | 同時の登録 | 読み取りの条件 | $2 |
 EOF
 }
 
-@test "dd-gate: 論理削除と一意性の組が無い DD は soft-delete の 2 項目が PASS" {
+@test "dd-gate: 制約を削除も緩和もしない DD は invariant の 2 項目が PASS" {
   run bash "$SCRIPT" "$DD"
-  printf '%s\n' "$output" | grep -q '^PASS  soft-delete-lock  論理削除と一意性の組なし'
-  printf '%s\n' "$output" | grep -q '^PASS  soft-delete-precedent  論理削除と一意性の組なし'
+  printf '%s\n' "$output" | grep -q '^PASS  invariant-owner  制約の削除・緩和なし'
+  printf '%s\n' "$output" | grep -q '^PASS  invariant-precedent  制約の削除・緩和なし'
 }
 
-@test "dd-gate: 論理削除と一意性の担い手に登録経路のロックと現在 / 撤回の件数があれば PASS" {
-  soft_delete_schema '先例: deleted_at を含む UNIQUE は現在 0 件 / 撤回 3 件' '注文を FOR UPDATE'
+@test "dd-gate: 制約を削除する DD に引き継ぎ先と確かめた箇所、現在 / 撤回の件数があれば PASS" {
+  owner_schema '先例: deleted_at を含む UNIQUE は現在 0 件 / 撤回 3 件' '注文を FOR UPDATE'
   run bash "$SCRIPT" "$DD"
   [ "$status" -eq 0 ]
-  printf '%s\n' "$output" | grep -q '^PASS  soft-delete-lock  担い手 1 行'
-  printf '%s\n' "$output" | grep -q '^PASS  soft-delete-precedent'
+  printf '%s\n' "$output" | grep -q '^PASS  invariant-owner  担い手 1 行'
+  printf '%s\n' "$output" | grep -q '^PASS  invariant-precedent'
 }
 
-@test "dd-gate: 論理削除と一意性の担い手に登録経路のロック列が無いと soft-delete-lock が FAIL" {
-  soft_delete_schema '先例: 現在 0 件 / 撤回 3 件' '注文を FOR UPDATE'
-  sedi 's/ | 登録経路のロック |/ | 備考 |/' "$DD"
+@test "dd-gate: 論理削除を含まない制約の緩和 (NOT NULL の解除) でも判定する" {
+  owner_schema '先例: 現在 1 件' ' ' 'index / 制約: 担当者 ID の NOT NULL を外し、未割り当てを許す'
   run bash "$SCRIPT" "$DD"
   [ "$status" -eq 1 ]
-  printf '%s\n' "$output" | grep -q '^FAIL  soft-delete-lock  担い手の表に「登録経路のロック」列が無い'
-  printf '%s\n' "$output" | grep -q '^PASS  soft-delete-precedent'
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-owner  削除・緩和した後の担い手か確かめた箇所が空の行 1'
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-precedent'
 }
 
-@test "dd-gate: 登録経路のロックの cell が空だと soft-delete-lock が FAIL" {
-  soft_delete_schema '先例: 現在 0 件 / 撤回 3 件' ' '
+@test "dd-gate: 制約を削除するのに担い手の表が無ければ FAIL" {
+  insert_schema <<EOF
+#### 物 (列追加)
+
+- 先例: 現在 0 件 / 撤回 1 件
+- index / 制約: 親 ID の外部キーを削除する
+EOF
   run bash "$SCRIPT" "$DD"
   [ "$status" -eq 1 ]
-  printf '%s\n' "$output" | grep -q '^FAIL  soft-delete-lock  登録経路のロックが空の行 1'
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-owner  制約を削除するか緩めるのに、「削除・緩和した後の担い手」列のある担い手の表が無い'
 }
 
-@test "dd-gate: 先例を撤回の件数なしで数えると soft-delete-precedent が FAIL" {
-  soft_delete_schema '先例: deleted_at を含む UNIQUE は現在 1 件' '注文を FOR UPDATE'
+@test "dd-gate: NOT NULL を解除するのに担い手の表が無ければ FAIL (論理削除の語が無くても起動する)" {
+  insert_schema <<EOF
+#### 物 (列追加)
+
+- 先例: 現在 0 件 / 撤回 1 件
+- index / 制約: 担当者 ID の NOT NULL を外し、未割り当てを許す
+EOF
   run bash "$SCRIPT" "$DD"
   [ "$status" -eq 1 ]
-  printf '%s\n' "$output" | grep -q '^FAIL  soft-delete-precedent'
-  printf '%s\n' "$output" | grep -q '^PASS  soft-delete-lock'
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-owner  制約を削除するか緩めるのに'
+}
+
+@test "dd-gate: 担い手の表に確かめた箇所の列が無いと invariant-owner が FAIL" {
+  owner_schema '先例: 現在 0 件 / 撤回 3 件' '注文を FOR UPDATE' '' '備考'
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-owner  担い手の表に「確かめた箇所」列が無い'
+  printf '%s\n' "$output" | grep -q '^PASS  invariant-precedent'
+}
+
+@test "dd-gate: 以前の列名「登録経路のロック」も確かめた箇所として受ける" {
+  owner_schema '先例: 現在 0 件 / 撤回 3 件' '注文を FOR UPDATE' '' '登録経路のロック'
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q '^PASS  invariant-owner  担い手 1 行'
+}
+
+@test "dd-gate: 確かめた箇所の cell が空だと invariant-owner が FAIL" {
+  owner_schema '先例: 現在 0 件 / 撤回 3 件' ' '
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-owner  削除・緩和した後の担い手か確かめた箇所が空の行 1'
+}
+
+@test "dd-gate: 先例を撤回の件数なしで数えると invariant-precedent が FAIL" {
+  owner_schema '先例: deleted_at を含む UNIQUE は現在 1 件' '注文を FOR UPDATE'
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-precedent'
+  printf '%s\n' "$output" | grep -q '^PASS  invariant-owner'
+}
+
+relax_only_schema() { # $1 = 制約の行
+  insert_schema <<EOF
+#### 物 (列変更)
+
+- 先例: 現在 0 件 / 撤回 1 件
+- $1
+EOF
+}
+
+@test "dd-gate: nullable にするだけの書き方でも invariant-owner が起動する" {
+  relax_only_schema 'index / 制約: user_id を nullable にする'
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-owner  制約を削除するか緩めるのに'
+}
+
+@test "dd-gate: VARCHAR の長さを広げる書き方でも invariant-owner が起動する" {
+  relax_only_schema 'index / 制約: name を VARCHAR(50) から VARCHAR(255) に広げる'
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-owner  制約を削除するか緩めるのに'
+}
+
+@test "dd-gate: ENUM に値を追加する書き方でも invariant-owner が起動する" {
+  relax_only_schema 'index / 制約: status の ENUM に archived を追加する'
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-owner  制約を削除するか緩めるのに'
+}
+
+@test "dd-gate: PRIMARY KEY の範囲を変える書き方でも invariant-owner が起動する" {
+  relax_only_schema 'index / 制約: PRIMARY KEY を (a) から (a,b) に変える'
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-owner  制約を削除するか緩めるのに'
+}
+
+@test "dd-gate: ON DELETE CASCADE を SET NULL に変える書き方でも invariant-owner が起動する" {
+  relax_only_schema 'index / 制約: 親 ID の ON DELETE CASCADE を SET NULL に変える'
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  invariant-owner  制約を削除するか緩めるのに'
+}
+
+@test "dd-gate: 列と index を追加するだけの Data Schema は invariant-owner が PASS のまま" {
+  relax_only_schema 'index / 制約: memo 列を追加し、created_at の index を追加する'
+  run bash "$SCRIPT" "$DD"
+  printf '%s\n' "$output" | grep -q '^PASS  invariant-owner  制約の削除・緩和なし'
+}
+
+@test "dd-gate: 「緩和した後の担い手」列でも担い手の表として検出する" {
+  insert_schema <<EOF
+#### 物 (列変更)
+
+- 先例: 現在 0 件 / 撤回 1 件
+- index / 制約: user_id を nullable にする
+
+| 何を守るか | 今どの仕組みが守るか | 緩和する制約が防いでいた場面 | 緩和した後の担い手 | 確かめた箇所 |
+| --- | --- | --- | --- | --- |
+| 担当者あり | NOT NULL | 未割り当て | アプリの検証 | service.go:10 |
+EOF
+  run bash "$SCRIPT" "$DD"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q '^PASS  invariant-owner  担い手 1 行'
 }
 
 # API も画面も持たない変更 (CLI / library / batch) の DD は Backend API と Frontend の表を作らない

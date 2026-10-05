@@ -75,7 +75,7 @@ PRD から PR までは、次の順に進めます。
 - 作業計画書の Change Map は、repo が宣言する層名 (宣言が無ければ module / package などの実在する構成単位) で書きます。特定の architecture を前提にしません
 - `/specramo:status` は既定で GitHub CLI (`gh`) に PR の有無を問い合わせます。GitLab など GitHub 以外では、設定 file の `pr_check_command` で確かめ方を差し替えます
 - 表の列幅の整形は任意です。repo で使っている markdown の整形 tool (prettier など) があれば使います
-- 保存データの検査の一部は RDB を前提にしています。論理削除と一意性の検査は MySQL のロック (`SELECT ... FOR UPDATE`、gap lock) で説明しており、PostgreSQL では読み替えが要ります。table を読む箇所の数え上げ (`scripts/table-readers.sh`) は SQL の文字列 (`FROM` / `JOIN`) だけを数えるので、ORM を使う repo や RDB を使わない repo では呼び出し元を別に調べてください
+- 保存データの検査の一部は RDB を前提にしています。制約を削除・緩和するときの検査は MySQL のロック (`SELECT ... FOR UPDATE`、gap lock) で説明しており、PostgreSQL では読み替えが要ります。table を読む箇所の数え上げ (`scripts/table-readers.sh`) は SQL の文字列 (`FROM` / `JOIN`) だけを数えるので、ORM を使う repo や RDB を使わない repo では呼び出し元を別に調べてください
 - 設計書の HTTP status の検査は WARN だけで、Web API でない変更では該当しません
 
 ## 使わない場面

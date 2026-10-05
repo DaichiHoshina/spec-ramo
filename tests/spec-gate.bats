@@ -294,6 +294,31 @@ EOF2
   printf '%s\n' "$output" | grep -q '^FAIL  impl-form  実装形 2 件'
 }
 
+@test "spec-gate: タスクの make gen と buf generate を実装形として数える" {
+  cat >> "$SPEC" <<'EOF2'
+
+#### タスク
+
+- [ ] `make gen` で mock を再生成する
+- [ ] `buf generate` で client を再生成する
+EOF2
+  run bash "$SCRIPT" "$SPEC"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q '^FAIL  impl-form  実装形 2 件'
+}
+
+@test "spec-gate: タスクの make test と npm test は impl-form に数えない" {
+  cat >> "$SPEC" <<'EOF2'
+
+#### タスク
+
+- [ ] `make test` が通ることを確かめる
+- [ ] `npm test` が通ることを確かめる
+EOF2
+  run bash "$SCRIPT" "$SPEC"
+  printf '%s\n' "$output" | grep -q '^PASS  impl-form  実装形の混入 0'
+}
+
 @test "spec-gate: 責務だけのタスクと完了条件の test command は impl-form を FAIL させない" {
   cat >> "$SPEC" <<'EOF2'
 

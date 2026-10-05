@@ -76,7 +76,7 @@ The workflow does not depend on a language, architecture, or code layout. It wor
 - The plan's Change Map uses the layer names your repo declares (or real units such as modules and packages when none are declared). No particular architecture is assumed
 - `/specramo:status` asks the GitHub CLI (`gh`) whether a PR exists by default. On GitLab or other hosts, set `pr_check_command` in the config file
 - Aligning table columns is optional. Use your repo's markdown formatter (such as prettier) if it has one
-- Some data checks assume a relational database. The soft-delete/uniqueness check is explained in terms of MySQL locking (`SELECT ... FOR UPDATE`, gap locks); adjust for PostgreSQL. The table-reader count (`scripts/table-readers.sh`) matches SQL strings (`FROM` / `JOIN`) only, so check callers separately in ORM-based or non-RDB repos
+- Some data checks assume a relational database. The check for removing or relaxing constraints is explained in terms of MySQL locking (`SELECT ... FOR UPDATE`, gap locks); adjust for PostgreSQL. The table-reader count (`scripts/table-readers.sh`) matches SQL strings (`FROM` / `JOIN`) only, so check callers separately in ORM-based or non-RDB repos
 - The HTTP status check in the design gate only warns, and does not apply to changes without a web API
 
 ## When not to use it

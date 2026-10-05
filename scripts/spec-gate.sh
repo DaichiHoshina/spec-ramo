@@ -3,7 +3,7 @@
 # 判定 5 項目 (+ 参考 4 項目): (1) 各 PR 行に「想定変更行数: N」がある
 #             (2) N が行数の上限 (設定 file の max_lines、無ければ 400) を超える PR があるときは「分割しない」理由が書かれている
 #             (3) 各 PR の直下に branch 名の bullet がある (形は設定 file の branch_pattern に従う。未宣言なら形を検査しない)
-#             (4) 完了条件と code block を除く全節に実装形 (method 名 / 先例の名指し / SQL / go generate / git grep / comment の位置) が混入していない
+#             (4) 完了条件と code block を除く全節に実装形 (method 名 / 先例の名指し / SQL / code 生成と検索の command / comment の位置) が混入していない
 #                 (括弧を伴わない識別子は WARN の impl-form-bare で一覧にする)
 #             (5) dead code first の雛形を採ったとき、既存挙動が変わる PR が 2 本以下である
 #                 (雛形を採ったかは「- flag:」の行で見分ける。判定できないときは WARN)
@@ -102,6 +102,8 @@ if [ "$missing_branch" -eq 0 ]; then report PASS branch "PR ${pr_count} 本す�
 # source file と判定する拡張子。主要な言語を並べ、file:line と file path の検出に使う。
 # ERE の選択は最長一致なので短い拡張子 (c / h / m) が長い拡張子 (cpp / hpp / mm) を切り詰めることは無い
 SRC_EXT='go|ts|tsx|mts|cts|js|jsx|mjs|cjs|vue|svelte|py|rb|java|kt|kts|scala|groovy|swift|m|mm|c|h|cc|cpp|cxx|hpp|hh|cs|fs|rs|php|ex|exs|erl|hs|ml|clj|dart|lua|pl|r|jl|zig|nim|sh|bash|ps1|sql|proto|tf'
+# code 生成と検索の command。make と npm 系は生成の target だけにする (test / lint はタスクの判定として記載される)
+GEN_CMD='go generate|buf generate|make [A-Za-z0-9_:-]*gen|(npm|pnpm|yarn) run [A-Za-z0-9_:-]*gen|git grep|(^|[^A-Za-z0-9_-])rg [-A-Za-z0-9"'"'"']'
 
 # (4) 実装形の混入。作業計画書は責務までを記述し、実装形は /specramo:phase-design が担当する (/specramo:plan)。
 # 対象は完了条件と code block を除いた全節にする。Read/Write・実装への指針・タスクの 3 節だけを
@@ -117,7 +119,7 @@ impl_sections=$(awk '
   /^\*\*/ { skip = 0 }
   !skip { print }
 ' "$SPEC")
-impl_hits=$(printf '%s\n' "$impl_sections" | grep -nE '[A-Z][A-Za-z0-9_]*[a-z][A-Za-z0-9_]*\(|[A-Za-z0-9_/.-]+\.('"${SRC_EXT}"'):[0-9]+|go generate|git grep|TODO\(#' || true)
+impl_hits=$(printf '%s\n' "$impl_sections" | grep -nE '[A-Z][A-Za-z0-9_]*[a-z][A-Za-z0-9_]*\(|[A-Za-z0-9_/.-]+\.('"${SRC_EXT}"'):[0-9]+|'"${GEN_CMD}"'|TODO\(#' || true)
 # SQL は Read/Write だけで数える。定義が SQL を名指しで禁じているのはこの項目で (/specramo:plan)、
 # タスクの SQL は移行前のデータ確認のように判定 command として書かれることがある
 rw_hits=$(awk '
@@ -136,7 +138,7 @@ impl_count=$(printf '%s' "$impl_hits" | grep -c . || true)
 if [ "$impl_count" -eq 0 ]; then
   report PASS impl-form '実装形の混入 0'
 else
-  report FAIL impl-form "実装形 ${impl_count} 件 (method 名 / 先例の名指し / SQL / go generate / git grep / comment の位置)。/specramo:phase-design へ移す"
+  report FAIL impl-form "実装形 ${impl_count} 件 (method 名 / 先例の名指し / SQL / code 生成と検索の command / comment の位置)。/specramo:phase-design へ移す"
   printf '%s\n' "$impl_hits" | head -5 | sed 's/^/      /'
 fi
 
