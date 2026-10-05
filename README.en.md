@@ -5,7 +5,7 @@
 Spec Ramo is a Claude Code plugin for spec-driven development. It splits a spec into Phases, one pull request each, and has the implementer understand each Phase before moving on to the next.
 
 - Name: spec + ramo (Spanish / Italian for "branch"). A spec branches out into one PR per Phase
-- Status: v0.4.2
+- Status: v0.5.0
 - The skills and generated documents are written in Japanese
 
 ## What it does
