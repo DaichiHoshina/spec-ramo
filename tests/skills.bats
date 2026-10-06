@@ -88,3 +88,11 @@ skills_except_init() {
     done
   done
 }
+
+@test "skills: plan は置き換えの削除を別の PR 群に置き、作られなくなる状態を読む側を PR に割り当てる" {
+  grep -q '「リリースする PR 群」と「切り戻しの期間の後に merge する削除の PR 群」の 2 群で組む' "$ROOT/skills/plan/SKILL.md"
+  grep -q '^## リリース後の削除の PR 群 (Step 3)' "$ROOT/skills/plan/phase-anatomy.md"
+  grep -q '^## 作られなくなる状態の読み手と PR の割り当て (Step 3)' "$ROOT/skills/plan/phase-anatomy.md"
+  grep -q '^## 作られなくなる状態を読む側' "$ROOT/skills/plan/scope-scan.md"
+  grep -q '後片づけ.*`/specramo:plan --update`' "$ROOT/skills/phase-design/SKILL.md"
+}

@@ -81,7 +81,7 @@ Design Doc に記載された API / Query / Command / 画面ごとに、既存 c
 
 列と行の書き方は同梱の `phase-anatomy.md` 「Change Map の表の書き方 (Step 2)」を Read する。
 
-個別の判定は同梱の `scope-scan.md` を Read する。扱うのは、参照件数と Phase の配置、Data Schema の不変条件、永続化層への登録、生成物の差分、test file の実在の確認、画面の repo の特定、Design Doc と code の不一致の扱いの 7 つ。
+個別の判定は同梱の `scope-scan.md` を Read する。扱うのは、参照件数と Phase の配置、Data Schema の不変条件、永続化層への登録、生成物の差分、test file の実在の確認、画面の repo の特定、Design Doc と code の不一致の扱い、作られなくなる状態を読む側の 8 つ。
 
 ## Step 2.5: repo の規約を Phase に当てる
 
@@ -107,6 +107,8 @@ Phase が 3 つ以上になったら、同梱の `purpose-traceability.md` に�
 
 - **順序と単位**
   - Design Doc にリリース計画 (DB、管理画面、ユーザーの画面のような段階) があれば、Phase の順序はそれに従う。無ければ「merge しても本番が壊れない順」で並べる
+  - 旧経路と新経路が code 上で並存する置き換えでは、PR 分割計画を最初から「リリースする PR 群」と「切り戻しの期間の後に merge する削除の PR 群」の 2 群で組む。旧経路と、旧経路を前提にした code・test・fixture の削除は後者に置き、リリース後も切り替えの PR だけを revert して旧経路へ戻せるようにする。細則は同梱の `phase-anatomy.md` 「リリース後の削除の PR 群」を Read する
+  - 状態を作らなくする PR (不変条件の追加 / 登録経路を 1 本にする / 旧経路の撤去) があるとき、その状態を読む code の分岐・test・fixture を列挙し、削除する PR か削除しない理由に割り当てる。手順は `scope-scan.md` 「作られなくなる状態を読む側」、割り当ては `phase-anatomy.md` 「作られなくなる状態の読み手と PR の割り当て」に従う
   - 1 Phase = 1 PR。BE と FE が別の repo のときは Phase を共通にし、repo ごとに PR 1 本ずつとする (PR 分割計画に repo を記載する)。Phase 名は「サイズ取得機能を追加する」のように、merge 後に利用者か運用者ができることで記載する
   - Design Doc の範囲に「既存の不具合の修正」が同居していれば、利用者から見える挙動が別なので独立した Phase にし、新機能の Phase より前に置く
   - `--phases <n>` は上限であって目標ではない。意味の単位が n 未満ならそのまま少なく作る

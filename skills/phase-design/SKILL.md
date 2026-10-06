@@ -82,6 +82,7 @@ Phase の責務が **現在どこでどう実現されているか**を実物で
 |---|---|
 | endpoint / field / flag / table / 画面の不足や形の違い | `/specramo:design --update` |
 | Phase の切り方が変わる規模 (参照が 10 file を超える等) | `/specramo:plan --update` |
+| 旧経路と新経路が code 上で並存する置き換えの Phase で見つかった後片づけ (到達しなくなる分岐 / 不要になる test・fixture) | `/specramo:plan --update` |
 | 実装経路の詳細だけの違い | この file に記載して進む |
 
 ## Step 3: 実装方法を決める
