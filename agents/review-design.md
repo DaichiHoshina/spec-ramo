@@ -25,6 +25,7 @@ tools: Read, Grep, Glob, Bash
   - 前の Phase の担当条件を、この diff が変えている場合は Critical
   - Design Doc が画面に表示する文字列として「」で示した列名・ボタン名・文言が、実装に完全一致で存在しない場合は Warning。対象は Design Doc の画面や表示を扱う節と、この Phase の担当条件の文中にある「」に限る (節名や用語の「」は含めない)。`git grep -F '<文字列>'` が 0 件のものを列挙する。設計と実装のどちらを修正するかは利用者が決め、エージェントはどちらも修正しない
   - Design Doc の path が無い作業計画書では、この観点を省いた旨を 1 行返す
+  - Phase の目的にレビューの指摘への link があれば、`gh api` で指摘の原文と返信を取得し、求められた変更を 1 件ずつ列挙する。各件を「diff で対応済み」「作業計画書の対象外に、担当する別の PR の番号付きで記載されている」「どちらでもない」に分け、どちらでもない件は Critical にする (指摘した人に「別 PR で対応」と返したまま、どの PR も担当しない状態になる)
 - **命名**: diff で新設した関数名と変数名を `${CLAUDE_PLUGIN_ROOT}/skills/implement/code-quality.md` の「Naming Criteria」と「Naming Shape」で点検する (Warning)。
 - **実装の形**: diff が採用した形を、同じ file の「Implementation Shape」で点検する。対象は transaction の渡し方 / 生成の形 (constructor か関数か) / 既存の型の field や signature の変更になる。
   - default branch の同じ層で候補の形ごとに件数を数え、少数派の形を採用している箇所、または既存の型を書き換えている箇所を指摘する (Warning)
