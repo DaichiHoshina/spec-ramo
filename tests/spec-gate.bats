@@ -51,6 +51,13 @@ EOF
   printf '%s\n' "$output" | grep -q '^PASS  branch  PR 2 本'
 }
 
+@test "spec-gate: 「想定の変更行数」と書いた PR も estimate が PASS" {
+  sedi 's/想定変更行数: /想定の変更行数: /g' "$SPEC"
+  run bash "$SCRIPT" "$SPEC"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q '^PASS  estimate  PR 2 本すべてに想定変更行数'
+}
+
 @test "spec-gate: 想定変更行数の無い PR があると estimate が FAIL" {
   sedi 's/想定変更行数: 250 (根拠: #100 の 238)/根拠だけ/' "$SPEC"
   run bash "$SCRIPT" "$SPEC"

@@ -59,7 +59,7 @@ if [ "$pr_count" -eq 0 ]; then report FAIL pr-rows 'PR 見出し (### PR #n ま�
 missing_est=0; over=0; missing_branch=0
 while IFS=$'\t' read -r head body; do
   [ -z "$head" ] && continue
-  est=$(printf '%s' "$body" | grep -oE '想定変更行数: *[0-9,]+' | head -1 | grep -oE '[0-9,]+' | tr -d ,)
+  est=$(printf '%s' "$body" | grep -oE '想定の?変更行数: *[0-9,]+' | head -1 | grep -oE '[0-9,]+' | tr -d ,)
   if [ -z "$est" ]; then missing_est=$((missing_est + 1)); elif [ "$est" -gt "$max_lines" ]; then over=$((over + 1)); fi
   printf '%s' "$body" | grep -qE "branch: *${branch_re}" || missing_branch=$((missing_branch + 1))
 done <<EOF
