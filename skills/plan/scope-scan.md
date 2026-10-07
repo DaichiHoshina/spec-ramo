@@ -48,6 +48,20 @@ Design Doc の記述と code が一致しない点は、次の 2 つに分けて
 対象は、不変条件を追加する PR、登録経路を 1 本にする PR、旧経路を撤去する PR の 3 種類だけにする。参照条件を変えるだけの PR には課さない。
 
 - PR ごとに「この PR の merge 後、作られなくなる状態」を 1 文で書く (例: 下書きのレコードに、確定の処理でしか設定しない値が付いた状態)
-- その状態を読む側を code の分岐 / test / fixture の 3 種類で grep し、1 行ずつ列挙する。書き込み側 (登録や後始末の分岐) だけを棚卸しすると、表示の分岐や、その状態を fixture で作る test が、どの PR にも含まれない
-- 列挙した行の割り当ては `phase-anatomy.md` 「作られなくなる状態の読み手と PR の割り当て」に従う
-- API の応答の項目は対象に含めない。応答を増減させるかは `/specramo:phase-design` の「API の応答を増減させるとき」で決める
+- その状態を読む側を、次の 2 段で grep し、1 行ずつ列挙する。書き込み側 (登録や後始末の分岐) だけを棚卸しすると、表示の分岐や、その状態を fixture で作る test が、どの PR にも含まれない
+  1. repo の中: code の分岐 / test / fixture
+  2. repo の外へ値を渡す境界: API の応答の項目、enum の値、event や message の項目、export する file の列など、その状態から作る値を外へ渡す箇所。境界ごとに、値を受け取る側 (別 repo の画面や client、他の service) を決めて grep する
+- 受け取る側の探し方は、境界の種類で変える
+
+  | 境界 | 受け取る側の探し方 |
+  |---|---|
+  | 画面向けの API (REST / GraphQL) | 「画面の repo 特定」と同じ方法で画面の repo を決める。BFF や API gateway が間にあれば、そこで項目を詰め替えていないかも確かめる |
+  | service 間の API (gRPC / 内部 REST) | IDL (proto 等) の定義 repo で message 名を検索し、その message を import している service を列挙する |
+  | event / message (queue / topic / stream) | topic を購読している consumer を、consumer の設定 (subscription / consumer group) と schema registry から列挙する |
+  | DB の共有 (別 service の直接参照 / CDC / 分析基盤への連携) | table と列の名前で、他 service の repo と、連携先の定義 (CDC の設定、分析基盤の query) を検索する |
+
+  - 複数の repo を横断して検索できるなら使う (`gh search code --owner <org> '<項目名>'` 等)。手元に clone の無い repo も対象に含めるため
+  - 受け取る側を列挙しきれない境界 (外部公開の API、consumer の一覧が無い topic) は、【未確認】として、探した場所と検索した語を記載する。未確認の項目は削除しない側に割り当てる
+- 受け取る側の grep は、項目名で止めずに、値を受け取った変数や共通の部品まで追う。項目名が画面固有の dir に無くても、共通の部品が表示していることがある
+- 自動生成の型や client にだけ項目名がある場合は、それを参照する画面の code があるかまで確かめる。生成物だけの一致は読む側に数えない
+- 列挙した行の割り当ては `phase-anatomy.md` 「作られなくなる状態の読み手と PR の割り当て」に従う。境界の項目も同じ表で割り当て、削除するかどうかを計画の時点で決める。`/specramo:phase-design` は、削除すると決めた項目について API 仕様と生成物の変更方法だけを扱う
