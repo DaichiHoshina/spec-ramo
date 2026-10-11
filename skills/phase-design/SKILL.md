@@ -135,6 +135,18 @@ Step 2 の事実を踏まえ、**記載する価値のある項目だけ**を記
 4. 書き出した後に `bash "${CLAUDE_PLUGIN_ROOT}/scripts/phase-gate.sh" <出力した file>` を実行し、FAIL 0 まで修正する。FAIL になる条件は `${CLAUDE_PLUGIN_ROOT}/skills/phase-design/anatomy.md` 「Step 4: 出力の細則」
 5. 実装に進まない
 
+### 失敗したときの分岐
+
+| 症状 | 見分け方 | 対処 |
+|---|---|---|
+| `--phase` の Phase が作業計画書に無い | 作業計画書の Phase 見出しに該当の番号が無い | 作業計画書にある Phase の番号と名前の一覧を示して止まる。番号を推測して別の Phase を対象にしない |
+| 完了条件に実行できる test command が無い | Phase の完了条件に、実行する command が 1 つも記載されていない | Step 2 で確かめた repo の test の実行 command を実装メモに記載し、作業計画書の不足として完了報告に添える |
+| 出力先に別 Phase の file が既にある | 既存 file 冒頭の Phase 名が今回の Phase と違う | 上書きしない。出力先の名前の決め方を利用者に確かめる |
+
+### 完了報告の例
+
+> Phase 2 の実装方法を決め、`<出力した file>` に記載しました。意味が変わる table はありません。`phase-gate.sh` は FAIL 0 です。未決は 1 件で、入口からの呼び出し経路を確かめても排他制御の要否を決められなかったため、実装前に判断をお願いします。Next: `/specramo:explain <作業計画書 path> --phase 2`
+
 ## Guard
 
 - 実装しない。code を編集しない

@@ -37,6 +37,12 @@ skills_except_init() {
   grep -q 'CLAUDE_PLUGIN_ROOT}/scripts/dd-gate.sh' "$ROOT/skills/design/SKILL.md"
 }
 
+@test "skills: design は抽象度の上限を持ち、雛形に field の一覧の節を置かない" {
+  grep -q '^## 抽象度の上限' "$ROOT/skills/design/SKILL.md"
+  ! grep -q 'API リファレンス' "$ROOT/templates/design.md"
+  ! grep -q 'Appendix B には field' "$ROOT/skills/design/anatomy.md"
+}
+
 @test "skills: plan は Phase の状態の表を埋める手順と作業計画書検査を持つ" {
   grep -q '「Phase の状態」の表に、PR ごとの行を追加する' "$ROOT/skills/plan/SKILL.md"
   grep -q 'CLAUDE_PLUGIN_ROOT}/scripts/spec-gate.sh' "$ROOT/skills/plan/SKILL.md"

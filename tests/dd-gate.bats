@@ -408,3 +408,11 @@ drop_api_and_screen() {
   run bash "$SCRIPT" "${BATS_TEST_TMPDIR}/nope.md"
   [ "$status" -eq 2 ]
 }
+
+@test "dd-gate: request / response の例があると detail-block が FAIL、無ければ PASS" {
+  run bash "$SCRIPT" "$DD"
+  [[ "$output" == *"PASS  detail-block"* ]]
+  printf '\n#### POST /v2/things\n\nResponse (200 OK)\n\n```json\n{ "id": 1 }\n```\n' >> "$DD"
+  run bash "$SCRIPT" "$DD"
+  [[ "$output" == *"FAIL  detail-block"* ]]
+}

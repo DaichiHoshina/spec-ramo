@@ -152,6 +152,17 @@ FAIL が 0 件になったら、同梱の `phase-anatomy.md` 「自己点検の�
 - 次のコマンドを 1 行で案内する: `/specramo:phase-design` (省略判定に当たる Phase なら `/specramo:explain`)
 - 実装には進まない
 
+## 失敗時の分岐
+
+| 症状 | 見分け方 | 対処 |
+|---|---|---|
+| 機能名の dir に Design Doc が無い | 機能名の dir に `design.md` が無い | 機能名の取り違えを疑い、`specs_dir` の下の dir 一覧を示して正しい機能名を確かめてから Step 1 を始める。1 文の要件として扱うのは、利用者が要件を文で示したときだけにする |
+| repo の規約の file を読めない | 設定 file の `rules` に並べた file が存在しないか Read が error を返す | その Phase の「実装への指針」に「規約の引き当て失敗」と記載し、読めなかった path を利用者に示して止まる |
+
+## 完了報告の例
+
+> 作業計画書を作成しました。PR は 4 本で、最初の PR は着手から 2 日以内に提出できる見込みです。作業計画書検査は FAIL 0 でした。次は `/specramo:phase-design <機能名> --phase 1` で Phase 1 の実装方法を決めます。
+
 ## Read-only (作業計画書以外)
 
 記載するのは作業計画書 1 file だけで、code / Design Doc を編集しない。Design Doc に不足があれば「Design Doc との差分」に記載して利用者に戻す。

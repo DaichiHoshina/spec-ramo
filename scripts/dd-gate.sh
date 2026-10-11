@@ -100,6 +100,10 @@ status=$(printf '%s\n' "$spec_body" | grep -cE '(^|[^0-9])(200|201|204|400|401|4
 if [ "$ident" -eq 0 ]; then report PASS ident 'file path / SQL 0'; else report WARN ident "file path / SQL らしき行 ${ident}"; fi
 if [ "$status" -eq 0 ]; then report PASS http-status 'HTTP status 0'; else report WARN http-status "HTTP status を含む行 ${status} (既存挙動の変更で明示した分は許容)"; fi
 
+# (3.5) Phase 詳細設計の内容 (request / response の例、DDL) を DD 全体で検出する
+detail=$(grep -cE '^```(json|sql)|^(\*\*)?(Request|Response|Error Response)[^|]*(\(|:)|^\*\*DDL' "$DD" || true)
+if [ "$detail" -eq 0 ]; then report PASS detail-block 'request / response / DDL の詳細 0'; else report FAIL detail-block "request / response / DDL の詳細 ${detail} 行 (Phase 詳細設計へ移して DD から削る)"; fi
+
 # (4) 決定事項の表 cell 長
 # mawk の length は byte 数を返し、日本語 1 文字を 3 と数える。UTF-8 の継続 byte を除いてから数える
 # macOS の awk は UTF-8 locale だと byte の範囲指定で消せないため、C locale で byte として扱わせる

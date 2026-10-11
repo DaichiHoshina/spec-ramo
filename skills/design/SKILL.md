@@ -8,6 +8,16 @@ disable-model-invocation: true
 
 > **Goal**: Design Doc は、利用者から見える動きだけでなく、その変更を構成する外部 interface (Web API・画面・CLI・公開 API・event 等のうち該当するもの)・Read / Write・必要なシステム能力まで整理し、作業計画書で PR 単位の実装計画へ分解できる状態にする文書。作業計画書はその変更面を Phase = PR・層と責務・完了条件へ具体化する文書。file / method / SQL は `/specramo:phase-design` が決める。短く言えば「Design Doc = PR 分割できる粒度までシステム変更面を設計する文書、作業計画書 = その変更面を実装順と PR へ具体化する文書」。完成条件は「Design Doc だけを読んだ人が、実装詳細を知らなくても『何を作れば正解か』を判断できる状態」。
 
+## 抽象度の上限 (DD に書かないもの)
+
+DD に記載するのは、作業計画書を作るのに必要な情報だけにする。次は Phase 詳細設計 (`/specramo:phase-design`) で決める内容で、DD には書かない。repo の DD の雛形にこれらを記載する節 (エンドポイント詳細 / Request / Response / DDL 例 等) があっても、その節は作らない。
+
+- API の request / response の項目名・型・例 (JSON)、HTTP status、エラー文言
+- 列の型・default・index の詳細と DDL (table の役割と、重複を禁止する組み合わせまでは書く)
+- 判定や処理の手順を 1 つずつ並べた説明 (流れはシーケンス図 1 枚か、1〜3 行で書く)
+- 却下案の網羅 (決定ごとに、迷いやすい却下案を最大 1 つ)
+
+書いた後に「この行が無いと作業計画書の Phase 分けか完了条件が決まらないか」を行ごとに確かめ、決まるなら削る。
 
 ## Design Doc と作業計画書とPhase 詳細設計の境界 (正本)
 
@@ -27,6 +37,9 @@ disable-model-invocation: true
 ## 規範と雛形 (Read only)
 
 着手前に、同梱した `writing-rules.md` (逆算の 4 原則、利用者が仕様を理解できる文章、構造ゲート) と Step 0 で決めた雛形を Read する。repo に独自の Design Doc の雛形を使いたいときは、導入先の `.specramo/templates/design.md` に置けば Step 0 がそちらを使う。
+
+- `specs_dir` の下に既存の DD があれば 2 本読み、節の名前・図の使い方・文の長さを合わせる
+- 雛形に spec 型の節 (Implementation Surface / Required Read・Write Capabilities / 合計の 1 行) が無ければ、その節は作らない
 
 ## Step 0: 前提確認と雛形の解決
 
@@ -64,9 +77,9 @@ path があって fix keyword が無いときだけ、PRD から導くのか既�
 3. Analyze code: 既存の振る舞いと影響範囲を確かめる。Serena などの code 解析 tool があれば使い、無ければ grep で調べる
    - 最初に実装済みかを確かめ、要件がすでに実装されていれば Design Doc を書かずに実物の場所を報告して止まる
    - 論点ごとの確かめ方 (先例の数え方 / 同時実行の競合の防ぎ方 / 既存 endpoint の拡張 / 保存先と endpoint の実在) は anatomy 「Step 3: Analyze code の論点」に従う
-3.5. Structure gate と骨子: draft 前に `writing-rules.md` の「文書全体の読みやすさ」を当て、見出しの役割と所有する主張を決める
-   - 骨子を 1 画面で chat に示し、user の差分を待ってから本文へ進む
-   - 骨子の内容と、待てない場合の代替は anatomy 「Step 3.5: 骨子の内容と待ち方」に従う
+3.5. Structure gate と構成案: draft 前に `writing-rules.md` の「文書全体の読みやすさ」を当て、見出しの役割と所有する主張を決める
+   - 構成案を 1 画面で chat に示し、user の差分を待ってから本文へ進む
+   - 構成案の内容と、待てない場合の代替は anatomy 「Step 3.5: 構成案の内容と待ち方」に従う
 4. 受け入れ条件を先に記載する: Step 3 の結果と入力から、受け入れ条件を表で列挙する
    - DD には PRD に無い条件だけを記載し、PRD の条件は番号か条件文の引用で参照する
    - 表の列と番号の付け方は anatomy 「Step 4: 受け入れ条件の表の書き方」に従う
@@ -75,7 +88,7 @@ path があって fix keyword が無いときだけ、PRD から導くのか既�
    - 決定事項では毎回 3 論点を検討し、決定を追加する・変えるたびに Implementation Surface へ戻って表と合計 1 行へ追加する
    - どの受け入れ条件にも対応しない節は削る
    - 3 論点と節の削り方は anatomy 「Step 5: 決定事項の 3 論点と節の削り方」に従う
-6. Quality gate: まず `bash "${CLAUDE_PLUGIN_ROOT}/scripts/dd-gate.sh" <path>` を実行し、FAIL 0 まで修正する
+6. Quality gate: まず `bash "${CLAUDE_PLUGIN_ROOT}/scripts/dd-gate.sh" <path>` を実行し、FAIL 0 まで修正する。repo の雛形に従って Implementation Surface を作らなかったときは、`surface-*` の FAIL は対象外として理由を 1 行記載する
    - script は合計と表の行数、未確定の残存、決定表の cell 長を判定する。WARN は理由を記載して削除せずにおいてよい
    - その後、下の **完了判定** を全て満たすまで Edit で修正する (最大 2 loop)
    - 満たせない項目は【要確認: 何を / 誰が決める / いつまで】として「未決事項」に集める

@@ -98,6 +98,21 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/phase-state.sh" set <作業計画書の path
 | Critical / Warning がある | `/specramo:review <機能名> --phase <n> --fix` |
 | 作業計画書 / Design Doc 側の誤りが疑われる | `/specramo:phase-design` か `/specramo:design --update` |
 
+## 失敗時の分岐
+
+| 症状 | 見分け方 | 対処 |
+|---|---|---|
+| base が決まらない | `git merge-base` が error になるか、前 Phase の branch が手元に無い | `git fetch` 後に改めて実行し、それでも無ければ default branch を base にして理由を `base:` 行に記載する |
+| エージェントが結果を返さない | 指摘の一覧も「指摘なし」も返らずに終わる | そのエージェントだけを同じ prompt で 1 回起動し、2 回目も同じなら `起動:` 行にその観点と「未実施」を記載する |
+| 指摘の `file:line` が差分に無い | 指摘の行が Step 1 の差分の範囲外 | 差分外の指摘として Critical と Warning の合計に数えず、参考として別に並べる |
+| `review-phase<n>.md` を書き出せない | 作業計画書の dir に書き込めない | chat の出力だけで閉じ、書き出せなかった旨と path を 1 行記載する。Step 5 の状態の更新は chat の結果で行う |
+
+## 完了報告の例
+
+```
+Phase 2 / 全 4 の review が終わりました。Critical 0 件、Warning 2 件です (A と D が同じ箇所を指摘しています)。結果は review-phase2.md に保存しました。次は `/specramo:review <機能名> --phase 2 --fix` です。
+```
+
 ## 禁止事項
 
 - `--fix` 以外では code を編集しない
