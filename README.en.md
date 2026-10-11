@@ -100,10 +100,6 @@ The environment variable `SPECRAMO_REVIEW_DATA_DIR` points review agent B at you
 
 To use your own templates, put a file with the same name at `.specramo/templates/<prd|design|plan|phase-design>.md`.
 
-## Example
-
-[examples/overdue-todos](examples/overdue-todos/) holds the documents from PRD to a Phase detailed design, for a feature that adds a list of overdue TODOs to a small TODO API.
-
 ## Development
 
 ```bash

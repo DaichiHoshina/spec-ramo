@@ -99,10 +99,6 @@ Spec Ramo は、PR が 2 本以上に分かれる大きさの開発を対象に�
 
 雛形を repo 独自のものにしたいときは、`.specramo/templates/<prd|design|plan|phase-design>.md` に同じ名前の file を置きます。
 
-## サンプル
-
-[examples/overdue-todos](examples/overdue-todos/) に、PRD から Phase 詳細設計までの成果物がそろっています。題材は、小さな TODO API に「期限切れの TODO の一覧」を追加する機能です。
-
 ## 開発
 
 ```bash
