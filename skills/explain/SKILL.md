@@ -194,5 +194,5 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/phase-state.sh" explained <作業計画書�
 ## Next
 
 - 実装前 mode: 不足が無ければ `Next: /specramo:implement <機能名> --phase <n>`
-- 実装後: 「影響範囲と注意点」に欠陥 (誤った挙動 / review の未解決の指摘) を記載したなら `Next: /specramo:review <機能名> --phase <n>`。欠陥が無ければ (未確認の点や読み方の補足だけなら)「理解できたら PR を作成する」と 1 行記載する
+- 実装後: 「影響範囲と注意点」に欠陥 (誤った挙動 / review の未解決の指摘) を記載したなら `Next: /specramo:review <機能名> --phase <n>`。欠陥が無ければ (未確認の点や読み方の補足だけなら)、Phase の PR が draft で作成済みなら「認識が合ったら draft を解除してレビューを依頼する」、PR がまだ無ければ「PR を draft で作成してから、もう一度説明と認識を突き合わせる」と 1 行記載する
 - 対象が既に default branch へ push 済みの commit なら (`git branch -r --contains <commit>` に `origin/main` 等が含まれる)、欠陥が無いときは PR 作成を案内せず `Next: なし (push 済み)` にする

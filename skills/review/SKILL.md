@@ -94,7 +94,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/phase-state.sh" set <作業計画書の path
 
 | 状態 | Next |
 |---|---|
-| Critical / Warning が 0 件 | `/specramo:explain <機能名> --phase <n>` (差分を理解してから PR へ) |
+| Critical / Warning が 0 件 | PR を draft で作成する。その後 `/specramo:explain <機能名> --phase <n>` で説明と自分の認識を突き合わせ、合ったら draft を解除してレビューを依頼する |
 | Critical / Warning がある | `/specramo:review <機能名> --phase <n> --fix` |
 | 作業計画書 / Design Doc 側の誤りが疑われる | `/specramo:phase-design` か `/specramo:design --update` |
 

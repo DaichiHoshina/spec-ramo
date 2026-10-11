@@ -12,7 +12,7 @@ Spec Ramo is a Claude Code plugin for spec-driven development. It splits a spec 
 
 - Creates a PRD, a Design Doc, an implementation plan, and per-Phase detailed designs from fixed templates, with check scripts
 - Splits the implementation plan into one Phase = one PR, and checks that each PR's estimated diff stays under a limit (400 lines by default)
-- `/specramo:explain` explains the design before implementation and the code after it, and ends with one question to check your understanding
+- `/specramo:explain` explains the design before implementation and the code after it, and ends with one to five questions to check your understanding
 - `/specramo:review` reviews the diff in parallel with separate agents per perspective: comparison with the design documents, past review findings, the repo's rules, and language guidelines
 - Each Phase's state (not started / in progress / reviewed / PR created) is recorded in a table in the plan, and `/specramo:status` lists it
 
@@ -62,7 +62,7 @@ Go from PRD to PR in this order:
 | 6 | `/specramo:explain` | Explain the Phase's design before implementation |
 | 7 | `/specramo:implement` | Implement one Phase and verify its completion criteria with commands |
 | 8 | `/specramo:review` | Review the Phase's diff from 4 perspectives in parallel |
-| 9 | `/specramo:explain` | Explain the code in the diff; once you understand it, you open the PR |
+| 9 | `/specramo:explain` | After review, open the PR as a draft and check the code explanation against your own understanding; once they match, mark the PR ready and request review |
 | - | `/specramo:status` | Show each feature's Phase progress and the command to run next |
 
 Repeat steps 5 to 9 for each Phase. You open the PRs yourself; Spec Ramo never opens a PR.

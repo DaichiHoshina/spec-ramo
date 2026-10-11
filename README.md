@@ -11,7 +11,7 @@ Spec Ramo (スペックラモ) は、仕様を PR 単位の Phase に分け、�
 
 - PRD、Design Doc、作業計画書、Phase 詳細設計を、決まった雛形と検査 script で作れます
 - 作業計画書は 1 Phase = 1 PR に分かれます。各 PR の想定の変更行数が上限 (初期値 400 行) を超えないかを script が検査します
-- 実装の前後で `/specramo:explain` が設計とコードを説明し、理解を確かめる質問を 1 つ返します
+- 実装の前後で `/specramo:explain` が設計とコードを説明し、理解を確かめる問いを 1〜5 個返します
 - `/specramo:review` は観点ごとに別のエージェント (設計書との比較 / 過去の指摘 / repo の規約 / 言語の開発指針) で並列に review します
 - 各 Phase の状態 (未着手 / 実装中 / レビュー済み / PR 作成済み) は作業計画書の表に記録され、`/specramo:status` で一覧できます
 
@@ -61,7 +61,7 @@ PRD から PR までは、次の順に進めます。
 | 6 | `/specramo:explain` | 実装前に Phase の設計を説明する |
 | 7 | `/specramo:implement` | Phase を 1 つ実装し、完了条件を command で確かめる |
 | 8 | `/specramo:review` | Phase の差分を 4 つの観点で並列に review する |
-| 9 | `/specramo:explain` | 実装後に差分のコードを説明する。理解できたら利用者が PR を作る |
+| 9 | `/specramo:explain` | review の後に PR を draft で作り、差分のコードの説明と自分の認識を突き合わせる。合ったら draft を解除してレビューを依頼する |
 | - | `/specramo:status` | 機能ごとの Phase の進み具合と、この後に実行するコマンドを表示する |
 
 5 から 9 を Phase ごとに繰り返します。PR は利用者が作ります。Spec Ramo は PR を作りません。
