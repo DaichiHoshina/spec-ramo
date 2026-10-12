@@ -28,15 +28,6 @@ session 内の `/plugin install` は、plugin の詳細画面を開きます。s
 
 インストールしたら、導入先の repo で `/specramo:init` を実行します。設定 file (`.specramo/config.yml`) と成果物の置き場所 (`.specramo/specs/`) を作ります。既にある file は変更しません。
 
-### private repo から導入するとき
-
-Claude Code は独自の token を使わず、手元の git の認証情報で clone します。この repo が private の間は、次のどちらかを済ませてから `/plugin marketplace add` を実行してください。
-
-- SSH の鍵を GitHub に登録する。passphrase の入力なしで使える鍵にし、`github.com` を `known_hosts` に登録しておく
-- `gh auth login` と `gh auth setup-git` で、git が GitHub CLI の認証を使うようにする
-
-環境変数 `GITHUB_TOKEN` を設定するだけでは認証されません。
-
 ### plugin の更新
 
 自分で追加した marketplace は、初期状態では自動更新されません。新しい版に更新するときは次の順に実行します。
@@ -92,10 +83,10 @@ Spec Ramo は、PR が 2 本以上に分かれる大きさの開発を対象に�
 | `max_lines` | `400` | 1 PR の想定の変更行数の上限 (テストを除く) |
 | `test_paths` | なし | 変更行数から除くテスト file の path pattern |
 | `branch_pattern` | なし | Phase の branch 名の形 (例: `phase/<PR>-<slug>`)。未記入なら名前があるかだけを検査する |
-| `rules` | なし | review のエージェント C が読む規約 file。未記入なら `.claude/rules/` の file を読む |
+| `rules` | なし | review の「repo の規約」のエージェントが読む規約 file。未記入なら `.claude/rules/` の file を読む |
 | `pr_check_command` | なし | `/specramo:status` が PR の有無を確かめる command。`{branch}` に branch 名が入る。終了コード 0 で何か表示すれば PR あり、何も表示しなければ PR なし、0 以外なら確認できなかった扱い。未記入なら `gh pr list` で確かめる (例: `glab mr list --source-branch {branch} --all --output json | jq '.[].iid'`) |
 
-環境変数 `SPECRAMO_REVIEW_DATA_DIR` で、review のエージェント B が読む指摘データの dir を指定できます。初期値は `~/.config/specramo/review-data/` です。指摘データはチームの過去の review から作る file で、社内情報を含むので repo には置きません。dir に file が無ければ B は起動しません。
+環境変数 `SPECRAMO_REVIEW_DATA_DIR` で、review の「過去の指摘」のエージェントが読む指摘データの dir を指定できます。初期値は `~/.config/specramo/review-data/` です。指摘データはチームの過去の review から作る file で、社内情報を含むので repo には置きません。dir に file が無ければ、このエージェントは起動しません。
 
 雛形を repo 独自のものにしたいときは、`.specramo/templates/<prd|design|plan|phase-design>.md` に同じ名前の file を置きます。
 

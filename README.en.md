@@ -29,15 +29,6 @@ In a session, `/plugin install` opens the plugin's detail panel; choose a scope 
 
 Then run `/specramo:init` in the repo where you want to use it. It creates the config file (`.specramo/config.yml`) and the output directory (`.specramo/specs/`). Existing files are left untouched.
 
-### Installing from a private repo
-
-Claude Code has no git token of its own; it clones with the git credentials on your machine. While this repo is private, set up one of these before `/plugin marketplace add`:
-
-- An SSH key registered on GitHub that works without a passphrase prompt, with `github.com` already in `known_hosts`
-- `gh auth login` followed by `gh auth setup-git`, so git uses the GitHub CLI credentials
-
-Setting `GITHUB_TOKEN` in the environment alone does not authenticate.
-
 ### Updating
 
 Marketplaces you add yourself do not auto-update by default. To update:
@@ -93,10 +84,10 @@ Keys in `.specramo/config.yml`:
 | `max_lines` | `400` | Upper limit of estimated changed lines per PR (excluding tests) |
 | `test_paths` | none | Path patterns of test files excluded from the line count |
 | `branch_pattern` | none | Shape of Phase branch names (e.g. `phase/<PR>-<slug>`). When empty, only the presence of a name is checked |
-| `rules` | none | Rule files that review agent C reads. When empty, the files in `.claude/rules/` are used |
+| `rules` | none | Rule files that the "repo rules" review agent reads. When empty, the files in `.claude/rules/` are used |
 | `pr_check_command` | none | Command `/specramo:status` runs to check whether a branch has a PR; `{branch}` is replaced with the branch name. Exit 0 with output = PR exists, exit 0 with no output = no PR, non-zero = could not check. When empty, `gh pr list` is used (e.g. `glab mr list --source-branch {branch} --all --output json | jq '.[].iid'`) |
 
-The environment variable `SPECRAMO_REVIEW_DATA_DIR` points review agent B at your team's review-finding data (default `~/.config/specramo/review-data/`). This data is built from your team's past reviews and contains internal information, so keep it out of the repo. If the directory has no files, agent B is not started.
+The environment variable `SPECRAMO_REVIEW_DATA_DIR` points the "past findings" review agent at your team's review-finding data (default `~/.config/specramo/review-data/`). This data is built from your team's past reviews and contains internal information, so keep it out of the repo. If the directory has no files, that agent is not started.
 
 To use your own templates, put a file with the same name at `.specramo/templates/<prd|design|plan|phase-design>.md`.
 
