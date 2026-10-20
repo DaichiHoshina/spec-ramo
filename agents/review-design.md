@@ -42,7 +42,10 @@ tools: Read, Grep, Glob, Bash
 - **test に無い入力**: mutation check は既存の test が壊れた条件を検出するかを確かめる。この観点は逆に、既存の test が想定していない入力で実装が誤るかを探す。
   - 当てる Phase: diff が保存データの更新 (INSERT / UPDATE / DELETE)、状態遷移 (status の値の変更)、並行処理 (lock / 再試行 / 同じ行への同時の書き込み) のどれかを含む Phase だけ。それ以外の Phase では、この観点を省いた旨を 1 行返す
   - 探す入力: 境界値 (0 件 / 上限 / 空文字)、異常系 (外部の呼び出しの失敗 / 途中での中断)、状態の順序 (許されない遷移 / 同じ遷移の 2 回目)、同時実行 (同じ対象への 2 つの更新)。diff の test がすでに扱っている入力は除く
-  - 各指摘に「入力 / 期待する結果 / 誤ると考える根拠の `file:line`」を添え、Warning とする。review を統合する側が test を追加して実行し、失敗を確かめたものだけ Critical に上げる
+  - 各指摘に「入力 / 期待する結果 / 誤ると考える根拠の `file:line`」を添え、Warning とする。このエージェントが行うのは指摘を返すところまでで、test の追加と実行は `/specramo:review` を実行している側が行う
+  - `/specramo:review` を実行している側は、`/specramo:implement` Step 3 と同じ使い捨ての環境 (`git worktree add` で作った別の dir など) に test を追加し、「検証」行の command で実行する。終わったら環境を削除し、test は Phase の diff に加えない。Critical に上げるのは、test が実装の誤りで失敗したときだけとし、compile error などの環境の失敗は除く。修正案の実行は Critical の条件に含めない (修正案は `--fix` で確かめる)
+  - 確かめた test の本文は指摘に添え、`--fix` で採るときはその本文を使う
+  - 手元の test で再現できない入力 (同時実行など、本物の DB や複数の process を必要とするもの) は実行せず、指摘に「未検証」と添えて Warning のまま返す
   - 返す指摘は Phase ごとに 3 件までとし、誤ったときの影響が大きい順に並べて上位を採る。件数を増やしても、reviewer が採否を決める手間が増えるだけになるため
 
 commit を順に読む前提の指摘 (commit の往復 / 並び順) は返さない。reviewer は全 commit をまとめた PR の diff を読む。
