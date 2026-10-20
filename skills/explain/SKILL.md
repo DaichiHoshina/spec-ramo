@@ -27,7 +27,8 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/require-config.sh"
 
 | 入力 | 対象 |
 |---|---|
-| 無指定 | working diff。無ければ `git diff HEAD~1..HEAD` (対象宣言で commit を明示する) |
+| 無指定 | 上から順に最初に当たったものを対象にする。(1) working diff。(2) diff が無く、直前の会話で調査結果・下書き・文書などの成果物を作った場合は、その成果物と、成果物が根拠にした code。(3) どちらも無ければ `git diff HEAD~1..HEAD` (対象宣言で commit を明示する) |
+| 読み手の指定だけ (「初心者向け」「PM 向け」など、対象を表さない語) | 対象は無指定の行と同じ順で決める。指定された読み手が知らない前提で「前提知識」の段を書き、初出の用語はすべて 1 行で定義する |
 | 機能名 + `--phase <n>` | 「Phase の状態」の表で状態が「未着手」なら実装前 mode。「実装中」以降なら、その Phase の branch の diff を対象にした実装後の説明 |
 | file path | その file 全体。1,000 行超なら公開 symbol の一覧を示して範囲を 1 問で限定する |
 | symbol 名 | 本体と呼び出し元を grep で集める |
