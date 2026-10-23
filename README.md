@@ -13,6 +13,8 @@ Spec Ramo (スペックラモ) は、仕様を PR 単位の Phase に分け、�
 - 作業計画書は 1 Phase = 1 PR に分かれます。各 PR の想定の変更行数が上限 (初期値 400 行) を超えないかを script が検査します
 - 実装の前後で `/specramo:explain` が設計とコードを説明し、理解を確かめる問いを 1〜5 個返します
 - `/specramo:review` は観点ごとに別のエージェント (設計書との比較 / 過去の指摘 / repo の規約 / 言語の開発指針) で並列に review します
+- 各コマンドは出口で `/specramo:review` を続けて実行し、次のコマンドに必要な情報が成果物に揃っているかを確かめます (引き継ぎ確認)
+- PR 1 つで済む変更は、`/specramo:prd --compact` と `/specramo:plan --compact` で、PRD と Design Doc、作業計画書と Phase 詳細設計をそれぞれ 1 枚にまとめられます
 - 各 Phase の状態 (未着手 / 実装中 / レビュー済み / PR 作成済み) は作業計画書の表に記録され、`/specramo:status` で一覧できます
 
 ## 導入
@@ -51,7 +53,7 @@ PRD から PR までは、次の順に進めます。
 | 5 | `/specramo:phase-design` | Phase 1 つの実装方法を、既存 code を調べてから決める (判断の無い Phase では省く) |
 | 6 | `/specramo:explain` | 実装前に Phase の設計を説明する |
 | 7 | `/specramo:implement` | Phase を 1 つ実装し、完了条件を command で確かめる |
-| 8 | `/specramo:review` | Phase の差分を 4 つの観点で並列に review する |
+| 8 | `/specramo:review` | Phase の差分を 4 つの観点で並列に review する。`/specramo:implement` が続けて実行する。PRD・Design Doc・作業計画書・Phase 詳細設計に当てると、引き継ぎ確認になる |
 | 9 | `/specramo:explain` | review の後に PR を draft で作り、差分のコードの説明と自分の認識を突き合わせる。合ったら draft を解除してレビューを依頼する |
 | - | `/specramo:status` | 機能ごとの Phase の進み具合と、この後に実行するコマンドを表示する |
 

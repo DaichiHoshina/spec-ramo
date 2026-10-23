@@ -1,6 +1,6 @@
 ---
-description: /specramo:implement で実装した Phase 1 つの差分を、設計書との比較・過去の指摘・repo の規約・言語の開発指針の観点で並列に review し、結果で Phase の状態を進める。「Phase をレビューして」で使う。
-argument-hint: "[機能名] [--phase <n>] [--fix]"
+description: 鎖の各 skill の出口で使う。PRD / Design Doc / 作業計画書 / Phase 詳細設計は、次の skill に必要な情報が揃っているかを確かめる (引き継ぎ確認)。/specramo:implement で実装した Phase 1 つの差分は、設計書との比較・過去の指摘・repo の規約・言語の開発指針の観点で並列に review し、結果で Phase の状態を進める。「Phase をレビューして」「PRD / Design Doc / 作業計画書をレビューして」で使う。
+argument-hint: "[機能名 | 成果物 path] [--phase <n>] [--fix]"
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,46 @@ disable-model-invocation: true
 
 > **Goal**: `/specramo:implement` が実装した Phase n の差分を観点ごとに別のエージェントで review し、利用者が `/specramo:explain` で差分を理解する前に、修正するものを確定させる。結果の Critical と Warning の合計で Phase の状態を進める。
 
-**Position**: `/specramo:implement` (Phase の実装) の後にこの skill を適用する。修正するものが無くなったら `/specramo:explain` (code の説明) から PR へ進む。
+**Position**: 鎖の各 skill の次に毎回置く。`/specramo:prd`、`/specramo:design`、`/specramo:plan`、`/specramo:phase-design` の次は引き継ぎ確認、`/specramo:implement` (Phase の実装) の次は差分の review になる。各 skill は出口でこの skill を続けて実行する。差分の review で修正するものが無くなったら `/specramo:explain` (code の説明) から PR へ進む。
+
+## 引き継ぎ確認か差分の review かの判定
+
+引数と branch から自動で決める。mode を指定する option は無い。
+
+| 入力 | 行うこと |
+|---|---|
+| `prd.md` / `design.md` / `plan-phase<n>.md` の path | 引き継ぎ確認 |
+| `plan.md` の path か機能名で、`--phase` が無く、現在の branch が作業計画書のどの Phase の `branch:` 行とも一致しない | 引き継ぎ確認 (作業計画書) |
+| それ以外 (`--phase` がある、または branch が Phase に一致する) | 差分の review (Step 0 以降) |
+
+## 引き継ぎ確認
+
+成果物が、次の skill の入力として足りているかを確かめる。この確認では差分の review の Step 1〜6 を実行せず、code の差分も読まない。
+
+確認の対象 (成果物と前の段の成果物) は、この確認の時点で Read し直す。会話の前半で読んだ内容や要約を比べる基準にしない。
+
+1. 成果物を Read し、`${CLAUDE_PLUGIN_ROOT}/skills/review/handoff.md` を Read して、成果物の種類に当たる行と、その節の項目を採る
+2. その行に script があれば、この skill を実行している側が実行する。script が判定する項目は結果をそのまま使う
+3. 表の「判断で確かめる項目」を 1 項目ずつ、成果物の節名と引用で「揃っている / 不足 / 未確認」に分ける。引用できない項目は「不足」にする
+4. 作業計画書と Phase 詳細設計の確認では、前の段の成果物 (同じ dir の `design.md` / `plan.md`) を Read し、受け入れ条件と Implementation Surface の割り当ての抜けを突き合わせる。前の段の成果物が無いときは「未確認」にする
+5. 出力は 1 行目に結論を置く。続けて不足と未確認の項目だけを「項目 / 理由 / 戻す先」の表にして示す。揃っている項目は件数だけにする。保存はせず chat だけで返す
+
+   ```
+   specramo:review 引き継ぎ確認: <成果物の種類> — <次の skill> に進める / 進めない (不足 <n> 件、未確認 <m> 件)
+   ```
+
+6. Next を 1 行記載する。不足があれば作った skill へ戻し、無ければ次の skill へ進む
+
+| 成果物 | 不足が 0 件のときの Next | 不足があるときの Next |
+|---|---|---|
+| PRD | `/specramo:design <機能名>` | `/specramo:prd <機能名>` (不足の項目を指定して更新) |
+| Design Doc | `/specramo:plan <機能名>` | `/specramo:design --update <design.md の path>` |
+| 作業計画書 | `/specramo:phase-design <機能名> --phase 1` (省略判定に当たる Phase は `/specramo:explain <機能名> --phase 1`) | `/specramo:plan --update <機能名>` (受け入れ条件の欠落が Design Doc 側の誤りなら `/specramo:design --update <design.md の path>`) |
+| Phase 詳細設計 | `/specramo:explain <機能名> --phase <n>` | `/specramo:phase-design <機能名> --phase <n>` (作業計画書の誤りなら `/specramo:plan --update`) |
+
+未確認の項目だけが不足の代わりに挙がったときは、未確認の項目を示して「進める / 戻す」の推奨を 1 つ添える。
+
+引き継ぎ確認では成果物を編集しない (不足は作った skill へ戻して修正する)。次の skill を自動で起動しない。
 
 ## Step 0: 前提確認
 

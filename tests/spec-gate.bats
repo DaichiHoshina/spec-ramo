@@ -278,6 +278,22 @@ EOF2
   printf '%s\n' "$output" | grep -q '^FAIL  impl-form  実装形 1 件'
 }
 
+@test "spec-gate: コンパクト形式の作業計画書は method 名があっても impl-form が PASS で、括弧なしの識別子も WARN にしない" {
+  sedi 's/^# 作業計画書: 例$/# 作業計画書: 例\
+\
+- 形式: コンパクト/' "$SPEC"
+  cat >> "$SPEC" <<'EOF2'
+
+#### タスク
+
+- [ ] `NewOrderDeliveryOptionWithExecutor(ex gorp.SqlExecutor)` を追加する
+- [ ] `BulkCreate` を呼ぶ
+EOF2
+  run bash "$SCRIPT" "$SPEC"
+  printf '%s\n' "$output" | grep -q '^PASS  impl-form  コンパクト形式のため'
+  ! printf '%s\n' "$output" | grep -q 'impl-form-bare'
+}
+
 @test "spec-gate: 実装への指針に先例 file:line があると impl-form が FAIL" {
   cat >> "$SPEC" <<'EOF2'
 

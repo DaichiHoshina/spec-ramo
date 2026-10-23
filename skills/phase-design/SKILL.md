@@ -71,6 +71,7 @@ Phase の責務が **現在どこでどう実現されているか**を実物で
 - 変更時に注意が必要な箇所を確認する。他の table を経由する参照、集計、cache、batch、非同期の処理、監査ログ、永続化層の登録が対象になる
 - 保存データの行や状態の意味が変わる table があるかを確かめる。物理削除から論理削除への切り替え、状態の値の追加、既存の列の意味の変更などが当たる。Phase 名の直後に `意味が変わる table: <table 名 (カンマ区切り)>` か `意味が変わる table: なし` の 1 行で宣言する。ある場合は、その保存先を読む処理を `table-readers.sh` と grep で全部洗い出し、`### table を読む query` の節に処理ごとの `- 扱い:` の行と一緒に記載する。手順と行の形は `${CLAUDE_PLUGIN_ROOT}/skills/phase-design/anatomy.md` 「保存データの意味が変わるときの洗い出し」
 - 作業計画書と実物の不一致
+- Phase がログ・記録・検証を追加するときは、既存の共通処理 (middleware / 共通 logger / hook) が同じ項目を既に扱っていないかを、処理の入口から呼び出し順に確かめる。扱っているなら追加せず、作業計画書の不一致として戻す
 
 **作業計画書 / Design Doc が名指しする既存の担保 (ロック / TX 境界 / 一意・外部キー・NOT NULL 等の制約 / 状態遷移) は、処理の入口から呼び出し順に確認して特定する**。grep の hit や file 名の一致で特定しない。記載の形は `${CLAUDE_PLUGIN_ROOT}/skills/phase-design/anatomy.md` 「既存の担保の特定」。
 
@@ -132,8 +133,8 @@ Step 2 の事実を踏まえ、**記載する価値のある項目だけ**を記
    - Phase 名の直後に `意味が変わる table:` の 1 行を置く (Step 2)
    - 本文は判断を言葉で書き、file 名 / 操作名 / 行番号 / test の実行 command は末尾の「実装メモ」表 1 つに集める。表の行は本文の判断の番号と対応させる。変更対象 file の一覧もこの中の `### 変更対象 file` に置く。code comment の文面も書かない
    - 分量は 100 行程度を目安にする (超えるときの判断は `${CLAUDE_PLUGIN_ROOT}/skills/phase-design/anatomy.md` 「Step 4: 出力の細則」)
-3. Next command を 1 行だけ記載する: `/specramo:explain <作業計画書 path> --phase <n>` (実装前に設計の説明を受け、その Next で `/specramo:implement` へ進む)。出力先は変えない
-4. 書き出した後に `bash "${CLAUDE_PLUGIN_ROOT}/scripts/phase-gate.sh" <出力した file>` を実行し、FAIL 0 まで修正する。FAIL になる条件は `${CLAUDE_PLUGIN_ROOT}/skills/phase-design/anatomy.md` 「Step 4: 出力の細則」
+3. 書き出した後に `bash "${CLAUDE_PLUGIN_ROOT}/scripts/phase-gate.sh" <出力した file>` を実行し、FAIL 0 まで修正する。FAIL になる条件は `${CLAUDE_PLUGIN_ROOT}/skills/phase-design/anatomy.md` 「Step 4: 出力の細則」
+4. FAIL 0 を確かめた後に、`/specramo:review <出力した file>` を確認なしで続けて実行し、実装前に必要な情報が揃っているかを確かめる。不足があればこの skill の手順で修正して確認し直す。不足が 0 件になったら Next command を 1 行だけ記載する: `/specramo:explain <作業計画書 path> --phase <n>` (実装前に設計の説明を受け、その Next で `/specramo:implement` へ進む)。出力先は変えない
 5. 実装に進まない
 
 ### 失敗したときの分岐
@@ -146,7 +147,7 @@ Step 2 の事実を踏まえ、**記載する価値のある項目だけ**を記
 
 ### 完了報告の例
 
-> Phase 2 の実装方法を決め、`<出力した file>` に記載しました。意味が変わる table はありません。`phase-gate.sh` は FAIL 0 です。未決は 1 件で、入口からの呼び出し経路を確かめても排他制御の要否を決められなかったため、実装前に判断をお願いします。Next: `/specramo:explain <作業計画書 path> --phase 2`
+> Phase 2 の実装方法を決め、`<出力した file>` に記載しました。意味が変わる table はありません。`phase-gate.sh` は FAIL 0 です。未決は 1 件で、入口からの呼び出し経路を確かめても排他制御の要否を決められなかったため、実装前に判断をお願いします。引き継ぎ確認は不足 0 件でした。Next: `/specramo:explain <作業計画書 path> --phase 2`
 
 ## Guard
 

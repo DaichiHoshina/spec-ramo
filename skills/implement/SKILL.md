@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # /specramo:implement - 作業計画書の Phase を 1 つ実装する
 
-> **Goal**: `/specramo:plan` が作成した作業計画書の Phase n だけを実装し、完了条件を command で確かめ、`/specramo:review` で review を受けられる状態で止める。PR は作らない。
+> **Goal**: `/specramo:plan` が作成した作業計画書の Phase n だけを実装し、完了条件を command で確かめ、続けて `/specramo:review` で review を受けて指摘を 0 件にした状態で止める。PR は作らない。
 
 **Position**: 仕様の `/specramo:design`、Phase = PR 分割の `/specramo:plan`、Phase n の実装方法の `/specramo:phase-design`、設計の説明の `/specramo:explain`、Phase の実装のこの skill、Phase の review の `/specramo:review`、code の説明の `/specramo:explain` の順に進む。PR は利用者が作る。
 
@@ -100,10 +100,12 @@ Phase <n> / 全 <N> — <Phase 名>: 完了 / 一部完了 (未達: ...)
 満たした条件: <条件の文の引用> / 未達: <同>   (計画書が担当条件を記載しているときだけ)
 検証: <実行した command と結果 1 行>
 mutation check: <壊した条件> → <fail した test 名> / 未実施 (<理由>)   (Phase 詳細設計が対象を決めているときだけ。不変条件 / 事前条件 / 事後条件があれば、残りの条件ごとに対応する test 名か「test なし」を添える)
-Next: /specramo:review <機能名> --phase <n>
+review: Critical <n> 件 / Warning <n> 件 / 修正済み <n> 件
+Next: PR を draft で作成する   (review の指摘が 0 件のとき。その後 /specramo:explain <機能名> --phase <n> へ)
 ```
 
-- 状態は「実装中」のままにし、review の結果で `/specramo:review` が進める。
+- 完了報告の前に `/specramo:review <機能名> --phase <n>` を確認なしで続けて実行する。指摘があれば `--fix` で修正し、Critical と Warning が 0 件になるまで繰り返す。作業計画書や設計側の誤りが疑われる指摘は修正せず、review の Next に従って戻す
+- 状態は review の結果で `/specramo:review` が進める。
 - この skill は次の Phase に自動で進まない。
 - 完了報告の直後に、レビューを依頼する前 (draft を解除する前) の checkpoint を利用者向けに列挙する。確認するのは利用者で、AI は代行しない。
   - test 抜きの変更行数が設定 file の `max_lines` 以下
@@ -127,7 +129,8 @@ Next: /specramo:review <機能名> --phase <n>
 Phase 2 / 全 4 — 登録の処理: 完了
 現在地: 前 保存先の追加 / 次 参照の処理
 検証: <完了条件の test command> — PASS (12 件)
-Next: /specramo:review <機能名> --phase 2
+review: Critical 0 件 / Warning 0 件 / 修正済み 1 件
+Next: PR を draft で作成する
 登録の処理を実装し、完了条件の test がすべて通過したことを確かめました。レビューを依頼する前の checkpoint をご確認ください。
 ```
 

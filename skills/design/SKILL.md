@@ -98,7 +98,7 @@ path があって fix keyword が無いときだけ、PRD から導くのか既�
 7.6. 第三者 review: 内容を知らない読み手が理解できるかを 6 観点で確かめる
    - 書き手と別の context にするため、Claude Code の汎用のサブエージェントへ委譲し、1 回だけ実行する
    - 6 観点、prompt、指摘の扱いは anatomy 「Step 7.6: 第三者 review の実行者と指摘の扱い」に従う
-8. Handoff: 次のコマンドを 1 行で案内する: `/specramo:plan`
+8. Handoff: `/specramo:review <design.md の path>` を確認なしで続けて実行し、作業計画書に必要な情報が揃っているかを確かめる。不足があればこの skill の手順で修正して確認し直す。不足が 0 件になったら、次のコマンドを 1 行で案内する: `/specramo:plan` (`--dry` のときは file が無いので review を省き、その旨を 1 行添える)
 
 ## 完了判定 (Step 6 の gate = 作業計画書を作成する前のチェックリスト)
 

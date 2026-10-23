@@ -14,6 +14,8 @@ Spec Ramo is a Claude Code plugin for spec-driven development. It splits a spec 
 - Splits the implementation plan into one Phase = one PR, and checks that each PR's estimated diff stays under a limit (400 lines by default)
 - `/specramo:explain` explains the design before implementation and the code after it, and ends with one to five questions to check your understanding
 - `/specramo:review` reviews the diff in parallel with separate agents per perspective: comparison with the design documents, past review findings, the repo's rules, and language guidelines
+- Each command runs `/specramo:review` at its exit to check that its output has everything the next command needs (handoff check)
+- For changes that fit in one PR, `/specramo:prd --compact` and `/specramo:plan --compact` combine the PRD with the Design Doc, and the plan with the Phase design, into one file each
 - Each Phase's state (not started / in progress / reviewed / PR created) is recorded in a table in the plan, and `/specramo:status` lists it
 
 ## Install
@@ -52,7 +54,7 @@ Go from PRD to PR in this order:
 | 5 | `/specramo:phase-design` | Decide how to implement one Phase after reading the existing code (skipped for Phases with no open decisions) |
 | 6 | `/specramo:explain` | Explain the Phase's design before implementation |
 | 7 | `/specramo:implement` | Implement one Phase and verify its completion criteria with commands |
-| 8 | `/specramo:review` | Review the Phase's diff from 4 perspectives in parallel |
+| 8 | `/specramo:review` | Review the Phase's diff from 4 perspectives in parallel. `/specramo:implement` runs it automatically. Given a PRD, Design Doc, plan, or Phase design, it runs the handoff check instead |
 | 9 | `/specramo:explain` | After review, open the PR as a draft and check the code explanation against your own understanding; once they match, mark the PR ready and request review |
 | - | `/specramo:status` | Show each feature's Phase progress and the command to run next |
 

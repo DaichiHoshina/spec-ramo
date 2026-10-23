@@ -1,6 +1,6 @@
 ---
 description: Design Doc から作業計画書 (Implementation Plan) を作る。Phase を意味で分けて 1 Phase = 1 PR にし、各 Phase に対象 / 対象外 / 完了条件を記載する。「作業計画書を作って」「PR 構成を決めて」で使う。
-argument-hint: "[機能名 | 要件の 1 文] [--phases <n>] [--update]"
+argument-hint: "[機能名 | 要件の 1 文] [--compact] [--phases <n>] [--update]"
 disable-model-invocation: true
 ---
 
@@ -18,6 +18,15 @@ disable-model-invocation: true
 | `/specramo:implement` | 作業計画書の Phase n だけを実装する |
 
 Design Doc を作る線引き (外部 interface が増える / 保存データの形が変わる / 画面が 2 つ以上変わる) に当たらない小さな変更は、Design Doc なしで要件の 1 文から直接この command に入ってよい。
+
+## Compact mode (`--compact`)
+
+`/specramo:prd --compact` が作った 1 枚 (同じ dir の `prd.md`) を入力に、作業計画書と Phase 詳細設計を 1 枚の `plan.md` にまとめる。
+
+- Phase は 1 つにする。Step 3 で 2 つ以上に分かれると判断したら、作らずに通常の手順 (`/specramo:design`) へ戻るよう報告する
+- Step 1〜4 は通常どおり実行し、Phase 1 の節に `/specramo:phase-design` の出力項目 (公開する型と操作 / 問い合わせの方針 / TX / テスト観点 / `### 変更対象 file`) を加える。`/specramo:phase-design` は別に実行しない
+- 冒頭の箇条書きに `- 形式: コンパクト` の 1 行を置く。作業計画書の検査 (`spec-gate.sh`) はこの行がある file では実装形の混入を判定しない
+- 出口の review は通常と同じく省かない (Step 5)。Next は `/specramo:explain <機能名> --phase 1`、その後 `/specramo:implement <機能名> --phase 1`
 
 ## Step 0: 前提確認と雛形の解決
 
@@ -149,7 +158,8 @@ FAIL が 0 件になったら、同梱の `phase-anatomy.md` 「自己点検の�
 
 - 作業計画書を Step 0 の path に書き出し、path を chat に示す。冒頭に PR の数と目安の日程を記載し、チームに共有する文を chat に 3 行以内で示す
 - 「Phase の状態」の表に、PR ごとの行を追加する。PR 列は `#<番号>`、Phase 名は PR の見出しの Phase 名、状態は「未着手」、説明は空にする
-- 次のコマンドを 1 行で案内する: `/specramo:phase-design` (省略判定に当たる Phase なら `/specramo:explain`)
+- `/specramo:review <plan.md の path>` を確認なしで続けて実行し、`/specramo:phase-design` に必要な情報が揃っているかを確かめる。不足があればこの skill の手順で修正して確認し直す。報告には `specramo:review 引き継ぎ確認:` の結論の 1 行を含める
+- 不足が 0 件になったら、次のコマンドを 1 行で案内する: `/specramo:phase-design` (省略判定に当たる Phase なら `/specramo:explain`)
 - 実装には進まない
 
 ## 失敗時の分岐
@@ -161,7 +171,7 @@ FAIL が 0 件になったら、同梱の `phase-anatomy.md` 「自己点検の�
 
 ## 完了報告の例
 
-> 作業計画書を作成しました。PR は 4 本で、最初の PR は着手から 2 日以内に提出できる見込みです。作業計画書検査は FAIL 0 でした。次は `/specramo:phase-design <機能名> --phase 1` で Phase 1 の実装方法を決めます。
+> 作業計画書を作成しました。PR は 4 本で、最初の PR は着手から 2 日以内に提出できる見込みです。作業計画書の検査は FAIL 0 で、引き継ぎ確認の不足も 0 件でした。次は `/specramo:phase-design <機能名> --phase 1` で Phase 1 の実装方法を決めます。
 
 ## Read-only (作業計画書以外)
 

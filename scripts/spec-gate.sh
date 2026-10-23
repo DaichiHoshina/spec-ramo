@@ -135,7 +135,12 @@ precedent_hits=$(printf '%s\n' "$impl_sections" \
   | grep -nE '先例|の書き方に合わせ|にならう|に倣う|comment[^。]{0,120}(と書く|と記載|に置く|を置く)' || true)
 impl_hits=$(printf '%s\n%s\n%s' "$impl_hits" "$rw_hits" "$precedent_hits" | grep -v '^$' || true)
 impl_count=$(printf '%s' "$impl_hits" | grep -c . || true)
-if [ "$impl_count" -eq 0 ]; then
+# コンパクト形式 (/specramo:plan --compact) は Phase 詳細設計を同じ file に置く定義なので、実装形の混入を判定しない
+compact=0
+grep -qE '^- 形式: コンパクト' "$SPEC" && compact=1
+if [ "$compact" -eq 1 ]; then
+  report PASS impl-form 'コンパクト形式のため実装形の混入は判定しない'
+elif [ "$impl_count" -eq 0 ]; then
   report PASS impl-form '実装形の混入 0'
 else
   report FAIL impl-form "実装形 ${impl_count} 件 (method 名 / 先例の名指し / SQL / code 生成と検索の command / comment の位置)。/specramo:phase-design へ移す"
@@ -148,7 +153,7 @@ fi
 bare_hits=$(printf '%s\n' "$impl_sections" \
   | grep -oE '`[A-Z][A-Za-z0-9_]*[a-z][A-Za-z0-9_]*`' | grep -vE '`Test' | sort -u || true)
 bare_count=$(printf '%s' "$bare_hits" | grep -c . || true)
-if [ "$bare_count" -gt 0 ]; then
+if [ "$bare_count" -gt 0 ] && [ "$compact" -eq 0 ]; then
   printf 'WARN  impl-form-bare  括弧なしの識別子 %s 種 (%s)。method 名なら /specramo:phase-design へ移す\n' \
     "$bare_count" "$(printf '%s' "$bare_hits" | tr '\n' ' ' | sed 's/ $//')"
 fi
