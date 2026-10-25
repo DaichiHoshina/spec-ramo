@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 > **Goal**: 実装前に作業を意味のある単位 (Phase = PR) に分け、各 Phase を読めば「何を作れば完了か」が分かる作業計画書を 1 file 作る。実装はしない。**分割の判断はレビューのしやすさを最優先にする** (Step 3 「分割の優先順位」)。
 
-## When to use (棲み分け)
+## When to use (対象外の依頼)
 
 | Command | Use |
 |---|---|
