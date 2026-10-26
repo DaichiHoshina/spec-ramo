@@ -30,7 +30,7 @@ disable-model-invocation: true
 
 作業計画書は「どの責務を、どの単位・順序で」だけの記載に保ち、実装形は着手する Phase の分だけこの file に格納する。操作名・問い合わせ・呼び出し元は既存 code を確かめないと決まらないので、Phase に着手する直前に決める。**行数削減は期待しない**。理由と効果は `${CLAUDE_PLUGIN_ROOT}/skills/phase-design/anatomy.md` 「なぜ作業計画書と分けるか」。
 
-## When to use (棲み分け)
+## When to use (対象外の依頼)
 
 | Command | Use |
 |---|---|
