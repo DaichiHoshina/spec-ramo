@@ -61,7 +61,7 @@ DD に記載するのは、作業計画書を作るのに必要な情報だけ�
 
 | Detection | Condition | Effect |
 |------|------|------|
-| update mode | 「`直して` / `更新` / `書き直し`」+ `.md` path | `--update <path>` 相当。既存の受け入れ条件の文を保ち、差分だけ Edit する。細則は `${CLAUDE_PLUGIN_ROOT}/skills/design/anatomy.md` 「update mode」 |
+| update mode | 「`直して` / `更新` / `書き直し`」+ `.md` path | `--update <path>` 相当。既存の受け入れ条件の文を保ち、差分だけ Edit する。Step 7.5〜8 の確認は差分が小さくても省かない。細則は `${CLAUDE_PLUGIN_ROOT}/skills/design/anatomy.md` 「update mode」 |
 | derive mode | 同じ機能名の dir に `prd.md` がある、または「PRD から」「〜を元に」+ PRD `.md` path | PRD から導く。PRD の Q1-Q5 は再評価せず転記する。細則は `${CLAUDE_PLUGIN_ROOT}/skills/design/anatomy.md` 「derive mode」 |
 | new mode | 上記なし | 通常 flow (Step 1 から) |
 
@@ -98,8 +98,10 @@ path があって fix keyword が無いときだけ、PRD から導くのか既�
 7.6. 第三者 review: 内容を知らない読み手が理解できるかを 6 観点で確かめる
    - 書き手と別の context にするため、Claude Code の汎用のサブエージェントへ委譲し、1 回だけ実行する
    - 6 観点、prompt、指摘の扱いは anatomy 「Step 7.6: 第三者 review の実行者と指摘の扱い」に従う
-8. Handoff: `/specramo:review <design.md の path>` を確認なしで続けて実行し、作業計画書に必要な情報が揃っているかを確かめる。不足があればこの skill の手順で修正して確認し直す。不足が 0 件になったら、次のコマンドを 1 行で案内する: `/specramo:plan` (`--dry` のときは file が無いので review を省き、その旨を 1 行添える)
-   - update mode で、同じ dir に `plan.md` が既にあるときは、`/specramo:plan --update <機能名>` を案内する (機能名は `design.md` を置いた dir の名前)。新規作成の `/specramo:plan` を案内すると、作業計画書と既存の Phase 詳細設計が更新前の内容のまま使われる
+8. Handoff: 次の順に実行する。update mode でも順序と内容は同じにする
+   1. `/specramo:review <design.md の path>` を確認なしで続けて実行し、作業計画書に必要な情報が揃っているかを確かめる。review の対象はこの Design Doc なので、作業計画書の更新を待たずに実行する。不足があればこの skill の手順で修正して確認し直す (`--dry` のときは file が無いので review を省き、その旨を 1 行添える)
+   2. update mode のときは、不足が 0 件になった後に、同じ dir に `plan.md` が既にあるかを確かめる。あれば、次のコマンドを `/specramo:plan --update <機能名>` にする (機能名は `design.md` を置いた dir の名前)。新規作成の `/specramo:plan` を案内すると、作業計画書と既存の Phase 詳細設計が更新前の内容のまま使われる
+   3. 次のコマンドを 1 行で案内する。新規作成のとき、または 2 で `plan.md` が無かったときは `/specramo:plan` にする。次のコマンドを「要決定:」の問いに置き換えない
 
 ## 完了判定 (Step 6 の gate = 作業計画書を作成する前のチェックリスト)
 

@@ -8,6 +8,7 @@
 - 既存の受け入れ条件の文を保ち、差分だけ Edit する。
 - この skill の定義を更新した後の既存 Design Doc も再生成せず、`bash "${CLAUDE_PLUGIN_ROOT}/scripts/dd-gate.sh" <path>` を適用して FAIL と WARN の項目だけ Edit する。
 - 起動するのは仕様が変わったときだけで、実装中に決まった細部を都度書き戻して仕様書にしない (書き換えたら user がレビュー依頼して認識を合わせる)
+- Edit と `dd-gate.sh` の後も、SKILL.md の Step 7.5 (writing check)、7.6 (第三者 review)、8 (Handoff の `/specramo:review`) を省かずに実行する。差分の行数や「意味が変わらない」という自分の判断を、省く理由にしない。1 行の追加でも、既存の条件や決定事項との組み合わせで結果が変わることがあり、それを確かめるのがこの 3 つの確認になる
 
 ## derive mode
 
