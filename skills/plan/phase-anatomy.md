@@ -30,6 +30,7 @@
 - 「Design Doc との差分」は DD に書かれた項目を消す
 - 表の cell は prettier の padding で文字列一致が成立しないので、行の key (PR 名 / Phase 名) で照合するか Edit 後に prettier を改めてかける
 - 影響する Phase に `<作業計画書の basename>-phase<n>.md` が既にあれば、その file の冒頭へ「無効 (作業計画書更新後。`/specramo:phase-design` で改めて作成する)」と 1 行記載し、本文は書き換えない。この 1 行が無いと `/specramo:implement` が更新前の契約をそのまま実装する
+- 完了報告には、Phase 詳細設計の file があるのに「無効」と記載しなかった Phase を 1 行ずつ並べ、Design Doc の変更点がその Phase の対象 / 完了条件に関係しない理由を添える。影響する Phase の判定は AI に任されていて検査が無いので、報告に理由があれば利用者が判定の誤りに気づける
 
 ## PR 見出しと節構成
 
