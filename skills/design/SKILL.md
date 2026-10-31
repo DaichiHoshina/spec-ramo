@@ -99,7 +99,7 @@ path があって fix keyword が無いときだけ、PRD から導くのか既�
    - 書き手と別の context にするため、Claude Code の汎用のサブエージェントへ委譲し、1 回だけ実行する
    - 6 観点、prompt、指摘の扱いは anatomy 「Step 7.6: 第三者 review の実行者と指摘の扱い」に従う
 8. Handoff: `/specramo:review <design.md の path>` を確認なしで続けて実行し、作業計画書に必要な情報が揃っているかを確かめる。不足があればこの skill の手順で修正して確認し直す。不足が 0 件になったら、次のコマンドを 1 行で案内する: `/specramo:plan` (`--dry` のときは file が無いので review を省き、その旨を 1 行添える)
-   - update mode で、同じ dir に `plan.md` が既にあるときは、`/specramo:plan --update <plan.md の path>` を案内する。新規作成の `/specramo:plan` を案内すると、作業計画書と既存の Phase 詳細設計が更新前の内容のまま使われる
+   - update mode で、同じ dir に `plan.md` が既にあるときは、`/specramo:plan --update <機能名>` を案内する (機能名は `design.md` を置いた dir の名前)。新規作成の `/specramo:plan` を案内すると、作業計画書と既存の Phase 詳細設計が更新前の内容のまま使われる
 
 ## 完了判定 (Step 6 の gate = 作業計画書を作成する前のチェックリスト)
 
