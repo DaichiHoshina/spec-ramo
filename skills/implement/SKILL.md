@@ -100,11 +100,11 @@ Phase <n> / 全 <N> — <Phase 名>: 完了 / 一部完了 (未達: ...)
 満たした条件: <条件の文の引用> / 未達: <同>   (計画書が担当条件を記載しているときだけ)
 検証: <実行した command と結果 1 行>
 mutation check: <壊した条件> → <fail した test 名> / 未実施 (<理由>)   (Phase 詳細設計が対象を決めているときだけ。不変条件 / 事前条件 / 事後条件があれば、残りの条件ごとに対応する test 名か「test なし」を添える)
-review: Critical <n> 件 / Warning <n> 件 / 修正済み <n> 件
+review: <最後の review の Critical n 件 / Warning n 件> (iteration n 回、修正済み n 件)
 Next: PR を draft で作成する   (review の指摘が 0 件のとき。その後 /specramo:explain <機能名> --phase <n> へ)
 ```
 
-- 完了報告の前に `/specramo:review <機能名> --phase <n>` を確認なしで続けて実行する。指摘があれば `--fix` で修正し、Critical と Warning が 0 件になるまで繰り返す。作業計画書や設計側の誤りが疑われる指摘は修正せず、review の Next に従って戻す
+- 完了報告の前に `/specramo:review <機能名> --phase <n>` を確認なしで続けて実行する。指摘があれば `--fix` で修正し、修正の後に必ず review をもう一度実行して、Critical と Warning が 0 件になるまで繰り返す。完了報告の review の行には最後の review の件数を記載し、修正しただけで再 review していない指摘を 0 件の側に含めない。作業計画書や設計側の誤りが疑われる指摘は修正せず、review の Next に従って戻す
 - 状態は review の結果で `/specramo:review` が進める。
 - この skill は次の Phase に自動で進まない。利用者が到達点を指定したときの例外は次の項目に従う。
 - **到達点を指定された依頼**: 利用者が鎖の途中の到達点を指定して進めるよう依頼したとき (「PR 作成まで進めて」「最後まで」「推奨で進めて」) は、各 skill の Next を確認なしで続けて起動し、到達点で止まる
@@ -134,7 +134,7 @@ Next: PR を draft で作成する   (review の指摘が 0 件のとき。そ�
 Phase 2 / 全 4 — 登録の処理: 完了
 現在地: 前 保存先の追加 / 次 参照の処理
 検証: <完了条件の test command> — PASS (12 件)
-review: Critical 0 件 / Warning 0 件 / 修正済み 1 件
+review: 最後の review の Critical 0 件 / Warning 0 件 (iteration 2 回、修正済み 1 件)
 Next: PR を draft で作成する
 登録の処理を実装し、完了条件の test がすべて通過したことを確かめました。レビューを依頼する前の checkpoint をご確認ください。
 ```
