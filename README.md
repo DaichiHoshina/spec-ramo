@@ -1,3 +1,7 @@
+# spec-ramo
+
+このリポジトリは [DaichiHoshina/daidai](https://github.com/DaichiHoshina/daidai) の `plugins/sdd` へ移動しました。今後の更新はそちらで行います。
+
 # Spec Ramo
 
 [English](README.en.md)
