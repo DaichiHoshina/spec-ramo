@@ -4,7 +4,7 @@ argument-hint: "[機能名 --phase <n> | diff | file path | symbol] [--level bri
 disable-model-invocation: true
 ---
 
-# /specramo:explain - 設計と実装の説明
+# /sdd:explain - 設計と実装の説明
 
 > **Goal**: 読み手 (利用者) が自分の言葉で再説明できる状態にする。説明の対象は時点で分ける。
 >
@@ -103,7 +103,7 @@ code の引用は説明に必要な行だけを fenced code block に分離す�
 
 ## 実装前 mode (設計の説明)
 
-`/specramo:phase-design` の後、`/specramo:implement` の前に使う。まだ code が無いので、説明するのは Phase の設計になる。利用者が「この Phase で何を作り、なぜその形にしたか」を自分の言葉で言えてから実装に入る。
+`/sdd:phase-design` の後、`/sdd:implement` の前に使う。まだ code が無いので、説明するのは Phase の設計になる。利用者が「この Phase で何を作り、なぜその形にしたか」を自分の言葉で言えてから実装に入る。
 
 ### 読むもの
 
@@ -151,7 +151,7 @@ code の引用は説明に必要な行だけを fenced code block に分離す�
 ```
 
 - code の逐行説明と SQL の全文は記載しない。code の詳細は実装後の説明が担う
-- 設計をこの場で変えない。説明の途中で設計の不足に気づいたら、「主な設計判断」の末尾に 1 行記載して Next を `/specramo:phase-design` にする
+- 設計をこの場で変えない。説明の途中で設計の不足に気づいたら、「主な設計判断」の末尾に 1 行記載して Next を `/sdd:phase-design` にする
 
 ## Step 4: 確認
 
@@ -190,10 +190,10 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/phase-state.sh" explained <作業計画書�
 
 ## 編集しないもの
 
-説明列の記録以外の file 編集と、外部への投稿をしない。説明の途中で欠陥に気づいたら「影響範囲と注意点」に 1 行で記載するに留め、修正は `/specramo:review` や `/specramo:implement` へ委ねる。
+説明列の記録以外の file 編集と、外部への投稿をしない。説明の途中で欠陥に気づいたら「影響範囲と注意点」に 1 行で記載するに留め、修正は `/sdd:review` や `/sdd:implement` へ委ねる。
 
 ## Next
 
-- 実装前 mode: 不足が無ければ `Next: /specramo:implement <機能名> --phase <n>`
-- 実装後: 「影響範囲と注意点」に欠陥 (誤った挙動 / review の未解決の指摘) を記載したなら `Next: /specramo:review <機能名> --phase <n>`。欠陥が無ければ (未確認の点や読み方の補足だけなら)、Phase の PR が draft で作成済みなら「認識が合ったら draft を解除してレビューを依頼する」、PR がまだ無ければ「PR を draft で作成してから、もう一度説明と認識を突き合わせる」と 1 行記載する
+- 実装前 mode: 不足が無ければ `Next: /sdd:implement <機能名> --phase <n>`
+- 実装後: 「影響範囲と注意点」に欠陥 (誤った挙動 / review の未解決の指摘) を記載したなら `Next: /sdd:review <機能名> --phase <n>`。欠陥が無ければ (未確認の点や読み方の補足だけなら)、Phase の PR が draft で作成済みなら「認識が合ったら draft を解除してレビューを依頼する」、PR がまだ無ければ「PR を draft で作成してから、もう一度説明と認識を突き合わせる」と 1 行記載する
 - 対象が既に default branch へ push 済みの commit なら (`git branch -r --contains <commit>` に `origin/main` 等が含まれる)、欠陥が無いときは PR 作成を案内せず `Next: なし (push 済み)` にする

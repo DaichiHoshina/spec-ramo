@@ -1,6 +1,6 @@
 # PRD の雛形
 
-`/specramo:prd` が使う雛形。導入先の `.specramo/templates/prd.md` に同じ名前の file を置くと、この雛形の代わりに使われる。
+`/sdd:prd` が使う雛形。導入先の `.sdd/templates/prd.md` に同じ名前の file を置くと、この雛形の代わりに使われる。
 
 ```markdown
 # PRD: [機能名]

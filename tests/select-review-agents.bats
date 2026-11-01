@@ -3,11 +3,11 @@
 
 setup() {
   SCRIPT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)/scripts/select-review-agents.sh"
-  unset SPECRAMO_CONFIG
+  unset SDD_CONFIG
   REPO="${BATS_TEST_TMPDIR}/repo"
-  mkdir -p "$REPO/.specramo"
-  printf 'specs_dir: .specramo/specs\n' > "$REPO/.specramo/config.yml"
-  export SPECRAMO_REVIEW_DATA_DIR="${BATS_TEST_TMPDIR}/review-data"
+  mkdir -p "$REPO/.sdd"
+  printf 'specs_dir: .sdd/specs\n' > "$REPO/.sdd/config.yml"
+  export SDD_REVIEW_DATA_DIR="${BATS_TEST_TMPDIR}/review-data"
 }
 
 line() {
@@ -21,15 +21,15 @@ line() {
 }
 
 @test "select-review-agents: 指摘データの dir に file があれば B は run で dir を渡す" {
-  mkdir -p "$SPECRAMO_REVIEW_DATA_DIR"
-  touch "$SPECRAMO_REVIEW_DATA_DIR/lens.md"
+  mkdir -p "$SDD_REVIEW_DATA_DIR"
+  touch "$SDD_REVIEW_DATA_DIR/lens.md"
   run bash "$SCRIPT" "$REPO"
   [ "$(line B | cut -f2)" = "run" ]
-  [ "$(line B | cut -f3)" = "$SPECRAMO_REVIEW_DATA_DIR" ]
+  [ "$(line B | cut -f3)" = "$SDD_REVIEW_DATA_DIR" ]
 }
 
 @test "select-review-agents: 指摘データの dir が空なら B は skip" {
-  mkdir -p "$SPECRAMO_REVIEW_DATA_DIR"
+  mkdir -p "$SDD_REVIEW_DATA_DIR"
   run bash "$SCRIPT" "$REPO"
   [ "$(line B | cut -f2)" = "skip" ]
   [[ "$(line B | cut -f3)" == *"指摘データが無いため B を省いた"* ]]
@@ -43,7 +43,7 @@ line() {
 @test "select-review-agents: rules の存在する path だけを C に渡し、存在しない path を警告する" {
   mkdir -p "$REPO/docs"
   touch "$REPO/docs/rules.md"
-  printf 'rules:\n  - docs/rules.md\n  - docs/missing.md\n' >> "$REPO/.specramo/config.yml"
+  printf 'rules:\n  - docs/rules.md\n  - docs/missing.md\n' >> "$REPO/.sdd/config.yml"
   run bash "$SCRIPT" "$REPO"
   [ "$(line C | cut -f2)" = "run" ]
   [ "$(line C | cut -f3)" = "docs/rules.md" ]
@@ -52,7 +52,7 @@ line() {
 }
 
 @test "select-review-agents: rules の path が 1 つも存在しなければ C は skip で警告がある" {
-  printf 'rules:\n  - docs/missing.md\n' >> "$REPO/.specramo/config.yml"
+  printf 'rules:\n  - docs/missing.md\n' >> "$REPO/.sdd/config.yml"
   run bash "$SCRIPT" "$REPO"
   [ "$(line C | cut -f2)" = "skip" ]
   [ "$(printf '%s\n' "$output" | grep -c '^warn	C	')" -eq 1 ]

@@ -1,9 +1,9 @@
 ---
-description: 機能ごとに Phase の進み具合 (未着手 / 実装中 / レビュー済み / PR 作成済み) を表示する。レビュー済みの Phase は PR の有無 (既定は GitHub、設定で差し替え可) を確かめて状態を更新する。「specramo の進み具合」「status 見せて」で使う。
+description: 機能ごとに Phase の進み具合 (未着手 / 実装中 / レビュー済み / PR 作成済み) を表示する。レビュー済みの Phase は PR の有無 (既定は GitHub、設定で差し替え可) を確かめて状態を更新する。「sdd の進み具合」「status 見せて」で使う。
 disable-model-invocation: true
 ---
 
-# /specramo:status - Phase の進み具合を表示する
+# /sdd:status - Phase の進み具合を表示する
 
 > **Goal**: 利用者が、機能ごとにどの Phase まで進んだかと、この後に実行するコマンドを 1 画面で把握できる状態にする。
 
@@ -33,10 +33,10 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/status.sh"
 
 | 状態 | 案内するコマンド |
 |---|---|
-| 作業計画書がない | `/specramo:plan <機能名>` |
-| 未着手の Phase がある (最初の 1 つ) | `/specramo:phase-design <機能名> --phase <n>` |
-| 実装中の Phase がある | `/specramo:implement <機能名> --phase <n>` か `/specramo:review <機能名> --phase <n>` |
-| レビュー済みの Phase がある | `/specramo:explain <機能名> --phase <n>` の後、利用者が PR を作る |
+| 作業計画書がない | `/sdd:plan <機能名>` |
+| 未着手の Phase がある (最初の 1 つ) | `/sdd:phase-design <機能名> --phase <n>` |
+| 実装中の Phase がある | `/sdd:implement <機能名> --phase <n>` か `/sdd:review <機能名> --phase <n>` |
+| レビュー済みの Phase がある | `/sdd:explain <機能名> --phase <n>` の後、利用者が PR を作る |
 | 全 Phase が PR 作成済み | なし (機能の Phase はすべて PR になった) |
 
 ## 編集しないもの

@@ -6,9 +6,9 @@ set -u
 
 . "$(dirname "$0")/lib/config.sh"
 
-if path="$(specramo_config_path "${1:-.}")"; then
+if path="$(sdd_config_path "${1:-.}")"; then
   printf '%s\n' "$path"
   exit 0
 fi
-echo "設定 file (.specramo/config.yml) がありません。/specramo:init を実行してください"
+echo "設定 file (.sdd/config.yml) がありません。/sdd:init を実行してください"
 exit 2

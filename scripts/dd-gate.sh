@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# spec 型 Design Doc の script 判定 gate。/specramo:design の品質 gate から呼ぶ。
+# spec 型 Design Doc の script 判定 gate。/sdd:design の品質 gate から呼ぶ。
 # 判定 8 項目: (1) Implementation Surface の合計 1 行と表の行数の一致 (API と画面の表が無い変更は対象なしで PASS)
 #             (2) 未確定 marker と「決める時点 = 作業計画書作成前 / DD レビュー」の残存
 #             (3) 「受け入れ条件」 / 振る舞い / 決定事項 の識別子・HTTP status (warn)

@@ -1,6 +1,6 @@
 # 汎用 12 観点と判定の基準
 
-`/specramo:review` のエージェント A (`specramo:review-design`) が、Phase 固有の観点と合わせて当てる汎用の観点。
+`/sdd:review` のエージェント A (`sdd:review-design`) が、Phase 固有の観点と合わせて当てる汎用の観点。
 
 ## 観点
 

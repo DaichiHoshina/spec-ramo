@@ -1,6 +1,6 @@
 # Phase 詳細設計の雛形
 
-`/specramo:phase-design` が使う雛形。導入先の `.specramo/templates/phase-design.md` に同じ名前の file を置くと、この雛形の代わりに使われる。判断の無い節は作らない (「変更なし」で節を埋めない)。
+`/sdd:phase-design` が使う雛形。導入先の `.sdd/templates/phase-design.md` に同じ名前の file を置くと、この雛形の代わりに使われる。判断の無い節は作らない (「変更なし」で節を埋めない)。
 
 ```markdown
 # Phase 詳細設計: PR #[n] [Phase 名]

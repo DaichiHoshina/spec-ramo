@@ -59,7 +59,7 @@ skills_except_init() {
   grep -q 'phase-state.sh" set <作業計画書の path> <n> レビュー済み' "$f"
   grep -q 'phase-state.sh" set <作業計画書の path> <n> 実装中' "$f"
   for a in review-design review-history review-rules review-language; do
-    grep -q "specramo:$a" "$f"
+    grep -q "sdd:$a" "$f"
     [ -f "$ROOT/agents/$a.md" ]
     grep -q "^name: $a$" "$ROOT/agents/$a.md"
   done
@@ -100,5 +100,5 @@ skills_except_init() {
   grep -q '^## リリース後の削除の PR 群 (Step 3)' "$ROOT/skills/plan/phase-anatomy.md"
   grep -q '^## 作られなくなる状態の読み手と PR の割り当て (Step 3)' "$ROOT/skills/plan/phase-anatomy.md"
   grep -q '^## 作られなくなる状態を読む側' "$ROOT/skills/plan/scope-scan.md"
-  grep -q '後片づけ.*`/specramo:plan --update`' "$ROOT/skills/phase-design/SKILL.md"
+  grep -q '後片づけ.*`/sdd:plan --update`' "$ROOT/skills/phase-design/SKILL.md"
 }

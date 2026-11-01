@@ -4,13 +4,13 @@
 setup() {
   ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
   SCRIPT="$ROOT/scripts/status.sh"
-  unset SPECRAMO_CONFIG
+  unset SDD_CONFIG
   REPO="${BATS_TEST_TMPDIR}/repo"
-  mkdir -p "$REPO/.specramo/specs/no-plan" "$REPO/.specramo/specs/todos"
-  printf 'specs_dir: .specramo/specs\n' > "$REPO/.specramo/config.yml"
+  mkdir -p "$REPO/.sdd/specs/no-plan" "$REPO/.sdd/specs/todos"
+  printf 'specs_dir: .sdd/specs\n' > "$REPO/.sdd/config.yml"
   git -C "$REPO" init -q
   git -C "$REPO" remote add origin https://github.com/example/todos.git
-  PLAN="$REPO/.specramo/specs/todos/plan.md"
+  PLAN="$REPO/.sdd/specs/todos/plan.md"
   cat > "$PLAN" <<'EOF'
 # 作業計画書: todos
 
@@ -47,19 +47,19 @@ case "\${STUB_MODE:-found}" in
 esac
 EOF
   chmod +x "$STUB"
-  export SPECRAMO_GH="$STUB"
+  export SDD_GH="$STUB"
 }
 
 @test "status: 先頭に plugin の version を表示する" {
   run bash "$SCRIPT" "$REPO"
   [ "$status" -eq 0 ]
   version="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$ROOT/.claude-plugin/plugin.json")"
-  [ "${lines[0]}" = "specramo $version" ]
+  [ "${lines[0]}" = "sdd $version" ]
 }
 
 @test "status: 作業計画書が無い機能では plan の実行を案内する" {
   run bash "$SCRIPT" "$REPO"
-  [[ "$output" == *"no-plan: 作業計画書がありません。/specramo:plan を実行してください"* ]]
+  [[ "$output" == *"no-plan: 作業計画書がありません。/sdd:plan を実行してください"* ]]
 }
 
 @test "status: 作業計画書がある機能では Phase の状態の行を表示する" {
@@ -97,7 +97,7 @@ EOF
 }
 
 @test "status: gh が無い環境でも表示を続ける" {
-  SPECRAMO_GH="${BATS_TEST_TMPDIR}/no-such-gh" run bash "$SCRIPT" "$REPO"
+  SDD_GH="${BATS_TEST_TMPDIR}/no-such-gh" run bash "$SCRIPT" "$REPO"
   [ "$status" -eq 0 ]
   [[ "$output" == *"PR の有無を確認できなかった"* ]]
   [[ "$output" == *"| #1 | 一覧 | 実装中 | |"* ]]
@@ -106,16 +106,16 @@ EOF
 @test "status: pr_check_command があれば gh でなくその command で PR を確かめる" {
   CHECK="${BATS_TEST_TMPDIR}/check.sh"
   printf '#!/usr/bin/env bash\necho "$1" >> "%s"\necho "!12"\n' "$CALLS" > "$CHECK"
-  printf 'pr_check_command: bash %s {branch}\n' "$CHECK" >> "$REPO/.specramo/config.yml"
+  printf 'pr_check_command: bash %s {branch}\n' "$CHECK" >> "$REPO/.sdd/config.yml"
   git -C "$REPO" remote remove origin
-  SPECRAMO_GH="${BATS_TEST_TMPDIR}/no-such-gh" run bash "$SCRIPT" "$REPO"
+  SDD_GH="${BATS_TEST_TMPDIR}/no-such-gh" run bash "$SCRIPT" "$REPO"
   [ "$status" -eq 0 ]
   [ "$(cat "$CALLS")" = "phase/2-notify" ]
   grep -q '| #2 | 通知 | PR 作成済み |' "$PLAN"
 }
 
 @test "status: pr_check_command が何も表示しなければ状態を変えない" {
-  printf 'pr_check_command: "true {branch}"\n' >> "$REPO/.specramo/config.yml"
+  printf 'pr_check_command: "true {branch}"\n' >> "$REPO/.sdd/config.yml"
   run bash "$SCRIPT" "$REPO"
   [ "$status" -eq 0 ]
   grep -q '| #2 | 通知 | レビュー済み |' "$PLAN"
@@ -123,7 +123,7 @@ EOF
 }
 
 @test "status: pr_check_command が失敗したら状態を変えず、確認できなかった旨を表示する" {
-  printf 'pr_check_command: "false {branch}"\n' >> "$REPO/.specramo/config.yml"
+  printf 'pr_check_command: "false {branch}"\n' >> "$REPO/.sdd/config.yml"
   run bash "$SCRIPT" "$REPO"
   [ "$status" -eq 0 ]
   grep -q '| #2 | 通知 | レビュー済み |' "$PLAN"
@@ -132,7 +132,7 @@ EOF
 
 @test "status: pr_check_command の branch 名は shell に解釈させない" {
   sed -i.bak 's/phase\/2-notify/phase\/2-$(touch pwned)/' "$PLAN"
-  printf 'pr_check_command: "printf %%s {branch} > %s"\n' "${BATS_TEST_TMPDIR}/got" >> "$REPO/.specramo/config.yml"
+  printf 'pr_check_command: "printf %%s {branch} > %s"\n' "${BATS_TEST_TMPDIR}/got" >> "$REPO/.sdd/config.yml"
   run bash "$SCRIPT" "$REPO"
   [ ! -e "$REPO/pwned" ]
   [ "$(cat "${BATS_TEST_TMPDIR}/got")" = 'phase/2-$(touch pwned)' ]

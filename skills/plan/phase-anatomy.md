@@ -1,13 +1,13 @@
-# /specramo:plan の PR 見出し 6 項目と行数見積の詳細
+# /sdd:plan の PR 見出し 6 項目と行数見積の詳細
 
-`/specramo:plan` Step 3 の PR 見出し直下 6 項目 (対象 / Read/Write / 対象外 / 完了条件 / 実装への指針 / 動作確認手順) の書き方と、想定の変更行数の見積規則、`--update` の運用。本文は「6 項目を PR 見出し直下に置く」までに限定し、記述の粒度と NG pattern はここに記載する。
+`/sdd:plan` Step 3 の PR 見出し直下 6 項目 (対象 / Read/Write / 対象外 / 完了条件 / 実装への指針 / 動作確認手順) の書き方と、想定の変更行数の見積規則、`--update` の運用。本文は「6 項目を PR 見出し直下に置く」までに限定し、記述の粒度と NG pattern はここに記載する。
 
 ## impl-form 判定 (Step 4 の自己点検)
 
 作業計画書検査 (`scripts/spec-gate.sh`) の `impl-form` は次を判定する。
 
 - 対象節: 完了条件を除く全節 (処理フロー・既存への影響・マージ順序・リスクと対策も含む)
-- 対象語: method / constructor 名、先例の `file:line`、`go generate` や `git grep` での確認手順、TODO comment の位置。作業計画書では責務の言葉に戻す (`/specramo:phase-design` が Phase ごとに決める)
+- 対象語: method / constructor 名、先例の `file:line`、`go generate` や `git grep` での確認手順、TODO comment の位置。作業計画書では責務の言葉に戻す (`/sdd:phase-design` が Phase ごとに決める)
 - 対象外: 完了条件の test 名と判定 command はそのまま記載してよい
 - 記述の直し方: 処理フローの手順は entry point の名前でなく操作の名前で記述し、既存への影響の根拠列は調査した位置でなく影響の有無を記述する
 - `impl-form-bare` の WARN: 括弧を伴わない識別子の一覧で、型名や field 名も同じ形で発生するため FAIL にしていない。列挙された語を 1 つずつ見て、method 名なら責務の言葉に戻し、それ以外なら保持する
@@ -15,7 +15,7 @@
 ## Step 2.5 repo 規範の引き当て
 
 - 記載するのは rule の file 名と、その Phase で適用される制約の 1 行 (命名: interface / method / entity の付け方、型: nullable や ID の型、層: どこに置くか、error: sentinel や status の対応、test: file 名と build tag)。rule 本文は転記しない
-- 実装者はこの一覧の rule を着手前に Read する (`/specramo:implement` Step 1)
+- 実装者はこの一覧の rule を着手前に Read する (`/sdd:implement` Step 1)
 - 当たる rule が無い対象 file (新規 dir 等) は「該当 rule なし。隣接する <dir> の実装に合わせる」と記載する
 - 全 Phase に当たる rule (`**/*.go` 等) は「影響範囲」の節に 1 回だけ記載し、Phase には差分の rule だけ記載する (14 Phase に 12 行ずつ書くと読めない)
 - glob に当たらないが file 名の慣習が違うだけの rule (応答を `response.go` でなく `view.go` に置く等) は当たる扱いで記載し、rule 側の glob を修正する PR 文案を chat で提示する
@@ -29,7 +29,7 @@
 - 入口判定 (未決 Qn) は再実行して結果を入口判定の節に書き換える
 - 「Design Doc との差分」は DD に書かれた項目を消す
 - 表の cell は prettier の padding で文字列一致が成立しないので、行の key (PR 名 / Phase 名) で照合するか Edit 後に prettier を改めてかける
-- 影響する Phase に `<作業計画書の basename>-phase<n>.md` が既にあれば、その file の冒頭へ「無効 (作業計画書更新後。`/specramo:phase-design` で改めて作成する)」と 1 行記載し、本文は書き換えない。この 1 行が無いと `/specramo:implement` が更新前の契約をそのまま実装する
+- 影響する Phase に `<作業計画書の basename>-phase<n>.md` が既にあれば、その file の冒頭へ「無効 (作業計画書更新後。`/sdd:phase-design` で改めて作成する)」と 1 行記載し、本文は書き換えない。この 1 行が無いと `/sdd:implement` が更新前の契約をそのまま実装する
 - 完了報告には、Phase 詳細設計の file があるのに「無効」と記載しなかった Phase を 1 行ずつ並べ、Design Doc の変更点がその Phase の対象 / 完了条件に関係しない理由を添える。影響する Phase の判定は AI に任されていて検査が無いので、報告に理由があれば利用者が判定の誤りに気づける
 
 ## PR 見出しと節構成
@@ -42,9 +42,9 @@
 
 - **対象**: 触る層とその責務を、設計の語彙で記述する。repo が宣言する層名 (無ければ実在する構成単位の名前) と責務 1 行の形にする。
   - **file path は書かない**: 「`pkg/reader/order_delivery_option.go`: 単件 / 複数の取得」でなく「Reader (配送オプションの選択): 論理削除された選択を除いて返す」と記載する
-  - **責務は対象を目的語にする**: 「何を返すか / 何を保つか」で記述する。作業の手順 (「参照を限定する」「条件を追加する」) や保存の形 (「有効な行」「列」「JOIN」) を主語にしない。前者は `/specramo:implement` が決める作業、後者は `/specramo:phase-design` が決める実装形で、どちらも読み手が Design Doc の受け入れ条件と対応づけられない
+  - **責務は対象を目的語にする**: 「何を返すか / 何を保つか」で記述する。作業の手順 (「参照を限定する」「条件を追加する」) や保存の形 (「有効な行」「列」「JOIN」) を主語にしない。前者は `/sdd:implement` が決める作業、後者は `/sdd:phase-design` が決める実装形で、どちらも読み手が Design Doc の受け入れ条件と対応づけられない
   - Design Doc の Data Schema にある table 名と column 名は、その語のまま記載してよい
-  - file path は `/specramo:phase-design` Step 2 が実物で実在を確かめてから Step 3 の「変更対象 file」に記載するので、作業計画書に転記すると未検証の推測が残存する
+  - file path は `/sdd:phase-design` Step 2 が実物で実在を確かめてから Step 3 の「変更対象 file」に記載するので、作業計画書に転記すると未検証の推測が残存する
   - 層の数は影響の広さを示すので、必要なら「影響ファイル数: N」の見込みだけを添える
   - **層と責務の一覧は mermaid の図にする** (`flowchart LR`、1 node = 層名 + `<br/>` + 責務 1 行、呼び出しの向きを矢印で結び、table は円柱 node にする)。PR 本文の実装の概要の節へそのまま転記する
 
@@ -54,7 +54,7 @@
 
 - **Read/Write**: この Phase で必要になる Query / Command を、責務 1 行で列挙する。
   - 対象を目的語にする: 「論理削除された配送オプションの選択を除いた単件取得と一覧取得」の形で書き、「単件取得の SQL に条件を追加する」のような作業の手順にしない
-  - 操作名・シグネチャ・問い合わせは書かず、`/specramo:phase-design` が Phase ごとに決める
+  - 操作名・シグネチャ・問い合わせは書かず、`/sdd:phase-design` が Phase ごとに決める
   - Design Doc の Implementation Surface に無い責務はここで新規と明記する
   - 既存の呼び出しだけで完結する Phase は「新規なし。既存の <責務> を呼ぶ」と書く
 
@@ -66,11 +66,11 @@
   - spec 型なら担当する受け入れ条件を文の引用で列挙し、各条件をどの test で確かめるかをここで決めて書く
   - **引用は Design Doc の文言をそのまま転記し、backtick で囲む**。NG 用語辞書の検査は backtick の内側を対象外にするので、上流の語を言い換えずに転記できる
   - 辞書に合わせて引用を変形すると、読み手が Design Doc と照合できなくなる
-  - `/specramo:implement` はこの引用を完了報告に返す
-  - **fixture の行の構成はここに記載せず、`/specramo:phase-design` の「テスト観点」が Phase ごとに決める** (両方に記載すると担当が二重になる)
+  - `/sdd:implement` はこの引用を完了報告に返す
+  - **fixture の行の構成はここに記載せず、`/sdd:phase-design` の「テスト観点」が Phase ごとに決める** (両方に記載すると担当が二重になる)
 
 - **実装への指針**: Design Doc の決定のうち、見える動きは同じで作り方だけが変わるものをここに記載する (例: 判定処理を 1 つにまとめて共用する、論理削除を配送依頼のキャンセル処理と同じ transaction で行う)。Design Doc には置かない。Step 2.5 で引き当てた repo 規範の一覧「rule file 名: この Phase で適用される制約 1 行」もここに置く。
-  - 先例 file:line、method / constructor 名、TODO comment の位置、`go generate` や `git grep` での確認手順のような具体的な作業項目はここに記載せず、`/specramo:phase-design` が Phase ごとに決める (着手前に全 Phase 分を記載すると読めない量になる)
+  - 先例 file:line、method / constructor 名、TODO comment の位置、`go generate` や `git grep` での確認手順のような具体的な作業項目はここに記載せず、`/sdd:phase-design` が Phase ごとに決める (着手前に全 Phase 分を記載すると読めない量になる)
 
 - **動作確認手順**
 
@@ -164,7 +164,7 @@ model だけ / query だけ / usecase だけ の層切りは、次の例外条�
 
 ## 自己点検の項目 (Step 4)
 
-次を 1 つでも満たさなければ `/specramo:plan` Step 3 に戻る。先頭の 2 つは分割の優先順位の 1 と 2 に対応するので、他が全部成り立っていても、この 2 つを満たさない Phase は再分割する。
+次を 1 つでも満たさなければ `/sdd:plan` Step 3 に戻る。先頭の 2 つは分割の優先順位の 1 と 2 に対応するので、他が全部成り立っていても、この 2 つを満たさない Phase は再分割する。
 
 - 各 Phase が、その PR の diff と説明文だけで正しいか判断できる
   - 判断に他の PR の diff を読む必要があるなら、分け方か説明を修正する (依存する PR の「merge 後にできること」を前提として記載するのはよい)
@@ -174,7 +174,7 @@ model だけ / query だけ / usecase だけ の層切りは、次の例外条�
   - 各 Phase の完了条件が command で判定できる
   - 完了条件に記載した test file が実在するか、「新規作成」と記載されている
 - **完了条件の引用を Design Doc の原文と 1 件ずつ照合する**。数だけでなく文字列が一致しているかを確かめ、一致しない行は原文へ差し替える。要約や言い換えのまま引用の体裁にすると、実装者が期待値を取り違える
-- fixture の行の構成、問い合わせの条件、画面要素の名前が作業計画書に無い。いずれも `/specramo:phase-design` が Phase ごとに決めるので、作業計画書の側は「条件 N 件を区別できる fixture を新規作成する」までにする
+- fixture の行の構成、問い合わせの条件、画面要素の名前が作業計画書に無い。いずれも `/sdd:phase-design` が Phase ごとに決めるので、作業計画書の側は「条件 N 件を区別できる fixture を新規作成する」までにする
 - 完了条件を除く全節に実装形が混入していない (作業計画書の検査の `impl-form` が判定する。`impl-form-bare` の WARN の扱いは「impl-form 判定」)
 - 各 Phase の対象外が空でない
 - **同じ実測値を 2 つ以上の節へ転記していない**
@@ -184,7 +184,7 @@ model だけ / query だけ / usecase だけ の層切りは、次の例外条�
 - **`影響範囲` の先頭に Change Map の表があり、変更しない層も行になっていて、変更する層の `変更` 列に `★` が付いている** (作業計画書の検査の `change-map` が判定する)。作業計画書から確認できない層を推測して行にしていない
 - **`処理フロー` に `★` の付いた手順があり、その手順の末尾に担当 PR が添えてある** (作業計画書の検査の `flow-mark` が判定する)
 - Phase の合計が Design Doc の API / 画面 / Interfaces / Query / Command の数 (DD にある表の分だけ) と一致する (不足も余剰も無い。責務の数で数え、method 名では数えない)
-  - 受け入れ条件の全行と、Design Doc が PRD から参照している条件の全部が、いずれか 1 つの Phase に割り当てられている (割り当ての不足は Design Doc 側の不足なので `/specramo:design --update` へ戻す)
+  - 受け入れ条件の全行と、Design Doc が PRD から参照している条件の全部が、いずれか 1 つの Phase に割り当てられている (割り当ての不足は Design Doc 側の不足なので `/sdd:design --update` へ戻す)
   - 層切りした途中の Phase は「担当条件: なし」でよい
 - Phase が 3 つ以上のとき「目的と実装の対応」があり、その表の条件と Phase が本文の受け入れ条件と Phase を過不足なく参照している。**表の条件の数を Design Doc の受け入れ条件の数と突き合わせる**
 - **「目的と実装の対応」に Mermaid の図が無い**。3 PR 以上のとき、依存の向きが記載されている
@@ -193,13 +193,13 @@ model だけ / query だけ / usecase だけ の層切りは、次の例外条�
 - 旧経路と新経路が code 上で並存する置き換えの計画で、旧経路の削除がリリースする PR 群に含まれていない。削除の PR 群を merge し始める条件がマージ順序の節に記載されている
 - 各 PR の直下の箇条書きに `依存:` `branch:` `既存挙動:` `想定の変更行数:` の 4 行があり、PR 分割計画の冒頭に `- flag:` の 1 行がある
 - 「記載しないこと」の 4 種が本文に無い
-- **「Phase の状態」の表に、PR の見出しと同じ数の行があり、全行の状態が「未着手」で説明が空になっている** (`/specramo:implement` などが PR 列でこの表の行を特定する)
+- **「Phase の状態」の表に、PR の見出しと同じ数の行があり、全行の状態が「未着手」で説明が空になっている** (`/sdd:implement` などが PR 列でこの表の行を特定する)
 
 ## 記載しないこと (4 種の範囲)
 
 作業計画書は、読み手 (実装者と reviewer) が PR ごとの判断に必要な分だけにする。次の 4 種は記載せず、作業計画書の冒頭に「この計画書に記載しないこと」として同じ 4 行を置く。
 
 1. **他の文書に正本がある内容**: Design Doc や issue のコメントにある問い合わせの全文、リリース当日のチェックリスト、リグレッションテストの項目。関連ドキュメントに link だけを置く
-2. **file path、関数・method 名、問い合わせ、fixture の構成**: `/specramo:phase-design` が Phase ごとに決める
+2. **file path、関数・method 名、問い合わせ、fixture の構成**: `/sdd:phase-design` が Phase ごとに決める
 3. **同じ内容の 2 回目以降**: 1 か所だけに記載し、他の節からは節名で参照する
 4. **決定した日付と経緯**: 理由だけを記載する。例外は冒頭の `最終更新:` の 1 行で、`--update` のたびに日時を上書きする

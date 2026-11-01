@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Phase 詳細設計を script で判定する。/specramo:phase-design の Step 4 から呼ぶ。
+# Phase 詳細設計を script で判定する。/sdd:phase-design の Step 4 から呼ぶ。
 # 保存データの意味が変わる変更 (論理削除への切り替え / 状態の値の追加 / 列の意味の変更 など) では、
 # 条件の追加が必要な query が別の package や管理画面にもある。調べる手順を文章で記載するだけでは
 # 実行されないことがあったので、件数の一致と query ごとの判断の行数で、調べたことを確かめる。

@@ -14,7 +14,7 @@ setup() {
   # 宣言しないときの動きに任せると、cwd の repo の宣言の有無で判定が変わる
   CONF="${BATS_TEST_TMPDIR}/config.yml"
   printf 'branch_pattern: "<issue>-<be|fe>-<PR>"\n' > "$CONF"
-  export SPECRAMO_CONFIG="$CONF"
+  export SDD_CONFIG="$CONF"
   cat > "$SPEC" <<'EOF'
 # 作業計画書: 例
 
@@ -92,9 +92,9 @@ EOF
 }
 
 @test "spec-gate: 環境変数が無いときは、検査対象の file の dir から上へ探した設定 file を使う" {
-  unset SPECRAMO_CONFIG
-  mkdir -p "${BATS_TEST_TMPDIR}/repo/.specramo" "${BATS_TEST_TMPDIR}/repo/specs/x"
-  printf 'max_lines: 300\n' > "${BATS_TEST_TMPDIR}/repo/.specramo/config.yml"
+  unset SDD_CONFIG
+  mkdir -p "${BATS_TEST_TMPDIR}/repo/.sdd" "${BATS_TEST_TMPDIR}/repo/specs/x"
+  printf 'max_lines: 300\n' > "${BATS_TEST_TMPDIR}/repo/.sdd/config.yml"
   cp "$SPEC" "${BATS_TEST_TMPDIR}/repo/specs/x/plan.md"
   sedi 's/想定変更行数: 250/想定変更行数: 350/' "${BATS_TEST_TMPDIR}/repo/specs/x/plan.md"
   run bash "$SCRIPT" "${BATS_TEST_TMPDIR}/repo/specs/x/plan.md"
@@ -121,7 +121,7 @@ EOF
 }
 
 @test "spec-gate: branch_pattern が未宣言の repo では branch 名の形を検査しない" {
-  export SPECRAMO_CONFIG="${BATS_TEST_TMPDIR}/absent.yml"
+  export SDD_CONFIG="${BATS_TEST_TMPDIR}/absent.yml"
   sedi 's/branch: 123-be-2a/branch: feature-things-api/' "$SPEC"
   run bash "$SCRIPT" "$SPEC"
   [ "$status" -eq 0 ]
@@ -129,7 +129,7 @@ EOF
 }
 
 @test "spec-gate: branch_pattern が未宣言でも branch 名が無い PR は FAIL" {
-  export SPECRAMO_CONFIG="${BATS_TEST_TMPDIR}/absent.yml"
+  export SDD_CONFIG="${BATS_TEST_TMPDIR}/absent.yml"
   sedi '/^- branch: 123-be-2a$/d' "$SPEC"
   run bash "$SCRIPT" "$SPEC"
   [ "$status" -eq 1 ]

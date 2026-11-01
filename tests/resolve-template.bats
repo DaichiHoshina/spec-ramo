@@ -4,17 +4,17 @@
 setup() {
   ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
   SCRIPT="$ROOT/scripts/resolve-template.sh"
-  unset SPECRAMO_CONFIG
+  unset SDD_CONFIG
   REPO="${BATS_TEST_TMPDIR}/repo"
-  mkdir -p "$REPO/.specramo/templates"
-  touch "$REPO/.specramo/config.yml"
+  mkdir -p "$REPO/.sdd/templates"
+  touch "$REPO/.sdd/config.yml"
 }
 
 @test "resolve-template: 導入先に同じ名前の file があればその path" {
-  printf '# 独自の雛形\n' > "$REPO/.specramo/templates/design.md"
+  printf '# 独自の雛形\n' > "$REPO/.sdd/templates/design.md"
   run bash "$SCRIPT" design "$REPO"
   [ "$status" -eq 0 ]
-  [ "$output" = "$REPO/.specramo/templates/design.md" ]
+  [ "$output" = "$REPO/.sdd/templates/design.md" ]
 }
 
 @test "resolve-template: 導入先に無ければ plugin の雛形の path" {

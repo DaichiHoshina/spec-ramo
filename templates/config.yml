@@ -1,8 +1,8 @@
-# Spec Ramo の設定 (/specramo:init が作成した)
+# Spec Ramo の設定 (/sdd:init が作成した)
 # 書式は「key: value」の 1 行か、「key:」に続く「  - value」の list だけを読む
 
 # 成果物 (PRD / Design Doc / 作業計画書 / Phase 詳細設計) を置く dir。機能ごとに sub dir を作る
-specs_dir: .specramo/specs
+specs_dir: .sdd/specs
 
 # 1 PR の想定の変更行数の上限 (テストを除く)。作業計画書検査がこの値で判定する
 max_lines: 400
@@ -16,12 +16,12 @@ test_paths:
 # 未記入なら branch 名の形を検査せず、有無だけを判定する
 # branch_pattern: "phase/<PR>-<slug>"
 
-# /specramo:review のエージェント C が読む規約 file (repo 内の相対 path)
+# /sdd:review のエージェント C が読む規約 file (repo 内の相対 path)
 # 未記入なら .claude/rules/ の file を読む
 rules:
 #  - docs/coding-rules.md
 
-# /specramo:status が Phase の branch の PR (merge request) の有無を確かめる command。{branch} に branch 名が入る
+# /sdd:status が Phase の branch の PR (merge request) の有無を確かめる command。{branch} に branch 名が入る
 # 終了コード 0 以外 = 確認できなかった / 0 で何か表示 = PR あり / 0 で何も表示しない = PR なし
 # 未記入なら GitHub CLI (gh pr list --head {branch}) で確かめる。値に「 #」を含めない (comment として読まれる)
 # pr_check_command: glab mr list --source-branch {branch} --all --output json | jq '.[].iid'

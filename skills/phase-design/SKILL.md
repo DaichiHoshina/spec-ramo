@@ -4,11 +4,11 @@ argument-hint: "[機能名] [--phase <n>]"
 disable-model-invocation: true
 ---
 
-# /specramo:phase-design - Phase 1 つの実装方法を決める
+# /sdd:phase-design - Phase 1 つの実装方法を決める
 
-> **Goal**: 作業計画書の Phase n について、既存 code の事実を確かめてから実装形 (操作 / 契約 / 問い合わせの方針 / TX / 排他 / テスト観点) を決め、`/specramo:implement` がそのまま実装できる状態にする。実装はしない。
+> **Goal**: 作業計画書の Phase n について、既存 code の事実を確かめてから実装形 (操作 / 契約 / 問い合わせの方針 / TX / 排他 / テスト観点) を決め、`/sdd:implement` がそのまま実装できる状態にする。実装はしない。
 
-**Position**: 仕様の `/specramo:design`、Phase = PR 分割の `/specramo:plan`、Phase n の実装方法のこの command、設計の説明の `/specramo:explain`、Phase n の実装の `/specramo:implement` の順に進む。
+**Position**: 仕様の `/sdd:design`、Phase = PR 分割の `/sdd:plan`、Phase n の実装方法のこの command、設計の説明の `/sdd:explain`、Phase n の実装の `/sdd:implement` の順に進む。
 
 ## Step 0 の前: 前提確認と雛形の解決
 
@@ -34,15 +34,15 @@ disable-model-invocation: true
 
 | Command | Use |
 |---|---|
-| `/specramo:plan` | Design Doc を Phase = PR に分ける。責務までを書き、実装形は書かない |
-| `/specramo:phase-design <path> --phase <n>` | Phase n の実装形を決める (この command) |
-| `/specramo:implement <path> --phase <n>` | Phase n を実装する。Phase 詳細設計があれば入力に取る |
+| `/sdd:plan` | Design Doc を Phase = PR に分ける。責務までを書き、実装形は書かない |
+| `/sdd:phase-design <path> --phase <n>` | Phase n の実装形を決める (この command) |
+| `/sdd:implement <path> --phase <n>` | Phase n を実装する。Phase 詳細設計があれば入力に取る |
 
 「詳細設計して」「Phase n の実装方法を決めて」「実装前に調べて」で起動する。
 
 ## Step 0: 省略判定 (最初に行う)
 
-次を全部満たす Phase は Phase 詳細設計を作らない。その旨を 1 行宣言し、`Next: /specramo:explain <作業計画書 path> --phase <n>` (設計の説明を受けてから `/specramo:implement` へ) を記載して終える。**原則は書かない判断にする**。
+次を全部満たす Phase は Phase 詳細設計を作らない。その旨を 1 行宣言し、`Next: /sdd:explain <作業計画書 path> --phase <n>` (設計の説明を受けてから `/sdd:implement` へ) を記載して終える。**原則は書かない判断にする**。
 
 - TX 境界 / 排他制御 / 問い合わせの条件に判断の分岐が無い
 - interface を新設しない (既存 interface の内部実装だけを変える)
@@ -77,13 +77,13 @@ Phase の責務が **現在どこでどう実現されているか**を実物で
 
 集めた事実は成果物の独立節にしない。実装の判断を変えるものだけを Step 3 の該当項目の下に記載する。結果は user の確認を前提に記載する (`${CLAUDE_PLUGIN_ROOT}/skills/phase-design/anatomy.md` 「集めた事実の扱い」)。
 
-不一致の扱いは `/specramo:plan` Step 2 の判定表に従う。
+不一致の扱いは `/sdd:plan` Step 2 の判定表に従う。
 
 | 不一致の種類 | 戻り先 |
 |---|---|
-| endpoint / field / flag / table / 画面の不足や形の違い | `/specramo:design --update` |
-| Phase の切り方が変わる規模 (参照が 10 file を超える等) | `/specramo:plan --update` |
-| 旧経路と新経路が code 上で並存する置き換えの Phase で見つかった後片づけ (到達しなくなる分岐 / 不要になる test・fixture) | `/specramo:plan --update` |
+| endpoint / field / flag / table / 画面の不足や形の違い | `/sdd:design --update` |
+| Phase の切り方が変わる規模 (参照が 10 file を超える等) | `/sdd:plan --update` |
+| 旧経路と新経路が code 上で並存する置き換えの Phase で見つかった後片づけ (到達しなくなる分岐 / 不要になる test・fixture) | `/sdd:plan --update` |
 | 実装経路の詳細だけの違い | この file に記載して進む |
 
 ## Step 3: 実装方法を決める
@@ -104,7 +104,7 @@ Step 2 の事実を踏まえ、**記載する価値のある項目だけ**を記
 - API の応答を増減させるときの API 仕様の変更。項目を削除するかどうかは作業計画書の割り当てに従い、この Phase では削除すると決めた項目の API 仕様と生成物の変更方法だけを扱う
 - **不変条件** / **事前条件** / **事後条件**と、それぞれを守る場所 (この Phase で型か公開する操作を新しく作るときだけ)
 - テスト観点 (下の節)
-- 変更対象 file (Step 2 で実在を確かめたもの)。「実装メモ」の下に `### 変更対象 file` の見出しで箇条書きにする (`/specramo:implement` と `/specramo:review` がこの見出しを読む)
+- 変更対象 file (Step 2 で実在を確かめたもの)。「実装メモ」の下に `### 変更対象 file` の見出しで箇条書きにする (`/sdd:implement` と `/sdd:review` がこの見出しを読む)
 - 図を置くときは、観測できる場面を箱にする (`${CLAUDE_PLUGIN_ROOT}/skills/phase-design/anatomy.md` 「図の置き方」)
 - 既存 PR があるときは計画を正とする。計画と PR の差は 1 節に留め、PR の問い合わせを調査メモへ転記しない。実装の候補は PR の branch を読む前に並べ、PR の形は候補の 1 つとして他の候補と同じ基準で比べる
 
@@ -118,7 +118,7 @@ Step 2 の事実を踏まえ、**記載する価値のある項目だけ**を記
 
 ## 既存 detail file の rewrite (再実行 / 見た目の改善依頼)
 
-同じ Phase について `/specramo:phase-design` を再実行する場面がある。command 更新後の再実行、または「図を追加したい」「表でなく平文にしたい」等の見た目の改善依頼が典型で、実装済みか未実装かにかかわらず起こる。
+同じ Phase について `/sdd:phase-design` を再実行する場面がある。command 更新後の再実行、または「図を追加したい」「表でなく平文にしたい」等の見た目の改善依頼が典型で、実装済みか未実装かにかかわらず起こる。
 
 - 出力 file が既に存在するときは、上書き前に既存 file を Read し、記載済みの調査結果と判断を保つか削除するかを判定する。実装済み Phase の rewrite で調査結果を削除すると、着手時に既に決まった判断を書き換えることになる
 - rewrite の主目的が「読み手が理解しやすい形にする」なら、実装判断の中身は保ちつつ、順序 / 図 / 見出しだけを差し替える。Code Investigation の独立節は置かない。判断そのものを書き換えるなら、既存判断を書き換える理由を冒頭に 1 行記載する
@@ -133,7 +133,7 @@ Step 2 の事実を踏まえ、**記載する価値のある項目だけ**を記
    - Phase 名の直後に `意味が変わる table:` の 1 行を置く (Step 2)
    - 本文は判断を言葉で書き、file 名 / 操作名 / 行番号 / test の実行 command は末尾の「実装メモ」表 1 つに集める。表の行は本文の判断の番号と対応させる。変更対象 file の一覧もこの中の `### 変更対象 file` に置く。code comment の文面も書かない
 3. 書き出した後に `bash "${CLAUDE_PLUGIN_ROOT}/scripts/phase-gate.sh" <出力した file>` を実行し、FAIL 0 まで修正する。FAIL になる条件は `${CLAUDE_PLUGIN_ROOT}/skills/phase-design/anatomy.md` 「Step 4: 出力の細則」
-4. FAIL 0 を確かめた後に、`/specramo:review <出力した file>` を確認なしで続けて実行し、実装前に必要な情報が揃っているかを確かめる。不足があればこの skill の手順で修正して確認し直す。不足が 0 件になったら Next command を 1 行だけ記載する: `/specramo:explain <作業計画書 path> --phase <n>` (実装前に設計の説明を受け、その Next で `/specramo:implement` へ進む)。出力先は変えない
+4. FAIL 0 を確かめた後に、`/sdd:review <出力した file>` を確認なしで続けて実行し、実装前に必要な情報が揃っているかを確かめる。不足があればこの skill の手順で修正して確認し直す。不足が 0 件になったら Next command を 1 行だけ記載する: `/sdd:explain <作業計画書 path> --phase <n>` (実装前に設計の説明を受け、その Next で `/sdd:implement` へ進む)。出力先は変えない
 5. 実装に進まない
 
 ### 失敗したときの分岐
@@ -146,7 +146,7 @@ Step 2 の事実を踏まえ、**記載する価値のある項目だけ**を記
 
 ### 完了報告の例
 
-> Phase 2 の実装方法を決め、`<出力した file>` に記載しました。意味が変わる table はありません。`phase-gate.sh` は FAIL 0 です。未決は 1 件で、入口からの呼び出し経路を確かめても排他制御の要否を決められなかったため、実装前に判断をお願いします。引き継ぎ確認は不足 0 件でした。Next: `/specramo:explain <作業計画書 path> --phase 2`
+> Phase 2 の実装方法を決め、`<出力した file>` に記載しました。意味が変わる table はありません。`phase-gate.sh` は FAIL 0 です。未決は 1 件で、入口からの呼び出し経路を確かめても排他制御の要否を決められなかったため、実装前に判断をお願いします。引き継ぎ確認は不足 0 件でした。Next: `/sdd:explain <作業計画書 path> --phase 2`
 
 ## Guard
 
@@ -160,7 +160,7 @@ Step 2 の事実を踏まえ、**記載する価値のある項目だけ**を記
 
 ## Related
 
-- `/specramo:plan` — 入力の作業計画書を作成する。Phase は責務までで、実装形は記録しない
-- `/specramo:implement` — この file を入力に実装する
-- `/specramo:design` 「完了判定」 #11 — 関数名 / 問い合わせ / file 名を Design Doc に置かない判定。行き先はこの skill
+- `/sdd:plan` — 入力の作業計画書を作成する。Phase は責務までで、実装形は記録しない
+- `/sdd:implement` — この file を入力に実装する
+- `/sdd:design` 「完了判定」 #11 — 関数名 / 問い合わせ / file 名を Design Doc に置かない判定。行き先はこの skill
 - `${CLAUDE_PLUGIN_ROOT}/skills/phase-design/anatomy.md` — 各 Step の細則

@@ -4,18 +4,18 @@ argument-hint: "[機能名] [要件のメモ] [--compact]"
 disable-model-invocation: true
 ---
 
-# /specramo:prd - PRD を作る
+# /sdd:prd - PRD を作る
 
 何を実現したいかを、実装に入る前に 1 つの文書にまとめる。複数の専門の観点から、要件の抜けを見つける。
 
 進め方の全体は次のとおり。小さな修正にはこの手順を使わず、直接実装する。
 
-1. `/specramo:prd` (1 回)
-2. `/specramo:design` (1 回)
-3. `/specramo:plan` (1 回)
-4. Phase ごとに `/specramo:phase-design`、`/specramo:explain`、`/specramo:implement`、`/specramo:review`、`/specramo:explain` の順に進め、PR を作る
+1. `/sdd:prd` (1 回)
+2. `/sdd:design` (1 回)
+3. `/sdd:plan` (1 回)
+4. Phase ごとに `/sdd:phase-design`、`/sdd:explain`、`/sdd:implement`、`/sdd:review`、`/sdd:explain` の順に進め、PR を作る
 
-各 skill は出口で `/specramo:review` を続けて実行し、次の skill に必要な情報が揃っているかを確かめる (引き継ぎ確認)。
+各 skill は出口で `/sdd:review` を続けて実行し、次の skill に必要な情報が揃っているかを確かめる (引き継ぎ確認)。
 
 ## Compact mode (`--compact`)
 
@@ -25,7 +25,7 @@ PR 1 つで済む変更で、PRD と Design Doc を 1 枚の md にまとめる�
 - Step 5 の 11 観点は、Missing の観点だけを示す
 - 出力は雛形の 1 / 1.1 / 1.5 / 1.6 / 5 / 6 節に、`## 2. 設計` (処理の変更 / test の方針) を加えた 1 枚にする。2〜4 節と技術メモは作らず、設計に必要な code の位置 (層と関数) は `## 2. 設計` に記載する。PR が 1 つで済む根拠 (変更する層の数か、想定の変更行数) も同じ節に記載する
 - Step 0 で決めた path に保存する。chat だけで出して終えない
-- 出口の review は通常と同じく省かない (Step 9 の 3)。Next は `/specramo:plan <機能名> --compact`
+- 出口の review は通常と同じく省かない (Step 9 の 3)。Next は `/sdd:plan <機能名> --compact`
 
 ## Step 0: 前提確認と雛形の解決
 
@@ -128,9 +128,9 @@ Q の語: Q1 = 目的 / なぜ、Q2 = 作らない / 機会損失、Q3 = 代替�
 
 ## Step 8: 後続のコマンドへの受け渡し確認 (省略しない)
 
-`/specramo:design` は PRD から次のものを受け取る前提で動く。1 つでも欠けていたら、書き出す前に追加する。欠けたまま渡すと、Design Doc 側で用語の定義や「PRD に書き戻す要件」が増える。
+`/sdd:design` は PRD から次のものを受け取る前提で動く。1 つでも欠けていたら、書き出す前に追加する。欠けたまま渡すと、Design Doc 側で用語の定義や「PRD に書き戻す要件」が増える。
 
-| `/specramo:design` が受け取るもの | PRD の置き場 |
+| `/sdd:design` が受け取るもの | PRD の置き場 |
 | --- | --- |
 | 誰の、どの状況が変わるか | 1. Overview の目的 |
 | 対象範囲 (画面と client) | 1. Overview の対象範囲 |
@@ -146,8 +146,8 @@ PRD 本文が長くなったときは、Step 4 の「PRD に記載しないも�
 
 1. Step 0 で決めた path に PRD を書き出し、技術メモがあれば同じ dir の tech-notes.md に書き出す。
 2. Critical の一覧を示し、修正するか承認するかを利用者に聞く。
-3. 承認されたら、`/specramo:review <prd.md の path>` を確認なしで続けて実行し、`/specramo:design` に必要な情報が揃っているかを確かめる。不足があればこの skill の手順で修正して確認し直す。報告には `specramo:review 引き継ぎ確認:` の結論の 1 行を含める。
-4. 不足が 0 件になったら、次のコマンドとして `/specramo:design` を案内する。技術メモがあれば、同じ dir にあることを添える。`--compact` のときは `/specramo:plan <機能名> --compact` を案内する。
+3. 承認されたら、`/sdd:review <prd.md の path>` を確認なしで続けて実行し、`/sdd:design` に必要な情報が揃っているかを確かめる。不足があればこの skill の手順で修正して確認し直す。報告には `sdd:review 引き継ぎ確認:` の結論の 1 行を含める。
+4. 不足が 0 件になったら、次のコマンドとして `/sdd:design` を案内する。技術メモがあれば、同じ dir にあることを添える。`--compact` のときは `/sdd:plan <機能名> --compact` を案内する。
 
 ## 失敗時の扱い
 

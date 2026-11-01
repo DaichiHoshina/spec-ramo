@@ -1,6 +1,6 @@
 # Decision Quality Checklist
 
-Auto-applied by AI in `/specramo:prd` Step 3 and `/specramo:design` (required sections and quality gate). **Unmet items = Critical → draft returned for revision.**
+Auto-applied by AI in `/sdd:prd` Step 3 and `/sdd:design` (required sections and quality gate). **Unmet items = Critical → draft returned for revision.**
 
 ## Q1. Is this the real objective? (XY problem elimination)
 
@@ -41,8 +41,8 @@ Auto-applied by AI in `/specramo:prd` Step 3 and `/specramo:design` (required se
 
 | Command | Where applied | On violation |
 |---------|--------------|--------------|
-| `/specramo:prd` | Step 3 (before draft generation) | Ask the user to supplement |
-| `/specramo:design` | Acceptance criteria and required sections + quality gate | Rewrite with Edit, max 2 loops |
+| `/sdd:prd` | Step 3 (before draft generation) | Ask the user to supplement |
+| `/sdd:design` | Acceptance criteria and required sections + quality gate | Rewrite with Edit, max 2 loops |
 
 ## NG Patterns (Critical judgment)
 
@@ -54,4 +54,4 @@ Auto-applied by AI in `/specramo:prd` Step 3 and `/specramo:design` (required se
 
 ## Related
 
-- `/specramo:prd` Step 5: 11 観点のレビューで、この点検表が見ない観点をもれなく確かめる
+- `/sdd:prd` Step 5: 11 観点のレビューで、この点検表が見ない観点をもれなく確かめる

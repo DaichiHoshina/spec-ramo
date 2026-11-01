@@ -5,26 +5,26 @@
 # PR 作成済みにしてから表示する。確かめ方は設定 file の pr_check_command で差し替えられ、
 # 未記入なら GitHub CLI (gh) に問い合わせる。
 # 引数: 設定 file を探し始める dir (省略時は current dir)
-# 環境変数: SPECRAMO_GH (pr_check_command が未記入のとき GitHub への問い合わせに使う command。初期値は gh)
+# 環境変数: SDD_GH (pr_check_command が未記入のとき GitHub への問い合わせに使う command。初期値は gh)
 set -u
 
 here="$(cd "$(dirname "$0")" && pwd)"
 . "$here/lib/config.sh"
 plugin_root="$(dirname "$here")"
-gh_cmd="${SPECRAMO_GH:-gh}"
+gh_cmd="${SDD_GH:-gh}"
 
-config="$(specramo_config_path "${1:-.}")" || {
-  echo "設定 file (.specramo/config.yml) がありません。/specramo:init を実行してください"
+config="$(sdd_config_path "${1:-.}")" || {
+  echo "設定 file (.sdd/config.yml) がありません。/sdd:init を実行してください"
   exit 2
 }
 repo_root="$(dirname "$(dirname "$config")")"
-specs_dir="$(specramo_config_get "$config" specs_dir)" || specs_dir=".specramo/specs"
+specs_dir="$(sdd_config_get "$config" specs_dir)" || specs_dir=".sdd/specs"
 case "$specs_dir" in /*) ;; *) specs_dir="$repo_root/$specs_dir" ;; esac
 
 # pr_check_command: branch 名を {branch} に入れて shell で実行する command。
 # 終了コードが 0 以外なら確認できなかった扱い、0 で何か表示すれば PR あり、何も表示しなければ PR なしと読む。
 # GitLab / Gitea / Bitbucket / 社内の review tool など、GitHub 以外でも PR の有無を確かめられるようにする
-pr_check="$(specramo_config_get "$config" pr_check_command)" || pr_check=""
+pr_check="$(sdd_config_get "$config" pr_check_command)" || pr_check=""
 
 # GitHub の remote が無い repo では gh に問い合わせても PR は見つからないので、理由を分けて表示する
 has_github_remote=0
@@ -34,7 +34,7 @@ git -C "$repo_root" remote -v 2>/dev/null | grep -q 'github\.com' && has_github_
 pr_lookup() {
   if [ -n "$pr_check" ]; then
     # branch 名は引数で渡し、command の文字列に埋め込まない (branch 名の記号を shell が解釈しないようにする)
-    (cd "$repo_root" && bash -c "${pr_check//\{branch\}/\"\$1\"}" specramo-pr-check "$1")
+    (cd "$repo_root" && bash -c "${pr_check//\{branch\}/\"\$1\"}" sdd-pr-check "$1")
   else
     "$gh_cmd" pr list --head "$1" --state all --json number 2>/dev/null | grep '"number"'
     # grep の 1 (一致なし) は PR なし、gh の失敗だけを確認できなかった扱いにする
@@ -43,7 +43,7 @@ pr_lookup() {
 }
 
 version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$plugin_root/.claude-plugin/plugin.json" | head -1)"
-echo "specramo ${version:-不明}"
+echo "sdd ${version:-不明}"
 
 # 「Phase の状態」の表の行 (見出し行と区切り行を除く) を表示する
 state_rows() {
@@ -78,7 +78,7 @@ col() {
 }
 
 if [ ! -d "$specs_dir" ] || [ -z "$(find "$specs_dir" -mindepth 1 -maxdepth 1 -type d | head -1)" ]; then
-  echo "成果物がまだありません。/specramo:prd から始めてください"
+  echo "成果物がまだありません。/sdd:prd から始めてください"
   exit 0
 fi
 
@@ -87,7 +87,7 @@ for dir in "$specs_dir"/*/; do
   plan="${dir}plan.md"
   echo
   if [ ! -f "$plan" ]; then
-    echo "$feature: 作業計画書がありません。/specramo:plan を実行してください"
+    echo "$feature: 作業計画書がありません。/sdd:plan を実行してください"
     continue
   fi
   echo "$feature"
@@ -123,7 +123,7 @@ EOF
 
   rows="$(state_rows "$plan")"
   if [ -z "$rows" ]; then
-    echo "  「Phase の状態」の表がありません。/specramo:plan で作業計画書を更新してください"
+    echo "  「Phase の状態」の表がありません。/sdd:plan で作業計画書を更新してください"
     continue
   fi
   echo "| PR | Phase 名 | 状態 | 説明 |"

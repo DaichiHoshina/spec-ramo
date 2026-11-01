@@ -5,41 +5,41 @@
 Spec Ramo is a Claude Code plugin for spec-driven development. It splits a spec into Phases, one pull request each, and has the implementer understand each Phase before moving on to the next.
 
 - Name: a coined word that overlaps "spec" and "kramo" (from Sanskrit krama, "order / step"). A spec is carried out step by step, one Phase at a time
-- Status: v0.6.2
+- Status: v0.7.0
 - The skills and generated documents are written in Japanese
 
 ## What it does
 
 - Creates a PRD, a Design Doc, an implementation plan, and per-Phase detailed designs from fixed templates, with check scripts
 - Splits the implementation plan into one Phase = one PR, and checks that each PR's estimated diff stays under a limit (400 lines by default)
-- `/specramo:explain` explains the design before implementation and the code after it, and ends with one to five questions to check your understanding
-- `/specramo:review` reviews the diff in parallel with separate agents per perspective: comparison with the design documents, past review findings, the repo's rules, and language guidelines
-- Each command runs `/specramo:review` at its exit to check that its output has everything the next command needs (handoff check)
-- For changes that fit in one PR, `/specramo:prd --compact` and `/specramo:plan --compact` combine the PRD with the Design Doc, and the plan with the Phase design, into one file each
-- Each Phase's state (not started / in progress / reviewed / PR created) is recorded in a table in the plan, and `/specramo:status` lists it
+- `/sdd:explain` explains the design before implementation and the code after it, and ends with one to five questions to check your understanding
+- `/sdd:review` reviews the diff in parallel with separate agents per perspective: comparison with the design documents, past review findings, the repo's rules, and language guidelines
+- Each command runs `/sdd:review` at its exit to check that its output has everything the next command needs (handoff check)
+- For changes that fit in one PR, `/sdd:prd --compact` and `/sdd:plan --compact` combine the PRD with the Design Doc, and the plan with the Phase design, into one file each
+- Each Phase's state (not started / in progress / reviewed / PR created) is recorded in a table in the plan, and `/sdd:status` lists it
 
 ## Install
 
 Run these two in a Claude Code session:
 
 ```text
-/plugin marketplace add DaichiHoshina/spec-ramo
-/plugin install specramo@specramo
+/plugin marketplace add DaichiHoshina/daidai
+/plugin install sdd@daidai
 ```
 
-In a session, `/plugin install` opens the plugin's detail panel; choose a scope (user / project) there. From a shell, `claude plugin install specramo@specramo` installs it directly.
+In a session, `/plugin install` opens the plugin's detail panel; choose a scope (user / project) there. From a shell, `claude plugin install sdd@daidai` installs it directly.
 
-Then run `/specramo:init` in the repo where you want to use it. It creates the config file (`.specramo/config.yml`) and the output directory (`.specramo/specs/`). Existing files are left untouched.
+Then run `/sdd:init` in the repo where you want to use it. It creates the config file (`.sdd/config.yml`) and the output directory (`.sdd/specs/`). Existing files are left untouched.
 
 ### Updating
 
 Marketplaces you add yourself do not auto-update by default. To update:
 
-1. `/plugin marketplace update specramo` to refresh the listing
-2. In `/plugin`, open Spec Ramo on the Installed tab and press Update now (from a shell: `claude plugin update specramo@specramo`)
+1. `/plugin marketplace update daidai` to refresh the listing
+2. In `/plugin`, open Spec Ramo on the Installed tab and press Update now (from a shell: `claude plugin update sdd@daidai`)
 3. `/reload-plugins` to apply it to the running session
 
-To enable auto-update, open specramo on the Marketplaces tab in `/plugin` and press Enable auto-update.
+To enable auto-update, open daidai on the Marketplaces tab in `/plugin` and press Enable auto-update.
 
 ## Commands
 
@@ -47,16 +47,16 @@ Go from PRD to PR in this order:
 
 | Step | Command | What it does |
 |---|---|---|
-| 1 | `/specramo:init` | Create the config file and output directory |
-| 2 | `/specramo:prd` | Gather requirements interactively and write a PRD |
-| 3 | `/specramo:design` | Write a Design Doc that fixes behavior in an acceptance-criteria table |
-| 4 | `/specramo:plan` | Split the Design Doc into an implementation plan, one Phase = one PR |
-| 5 | `/specramo:phase-design` | Decide how to implement one Phase after reading the existing code (skipped for Phases with no open decisions) |
-| 6 | `/specramo:explain` | Explain the Phase's design before implementation |
-| 7 | `/specramo:implement` | Implement one Phase and verify its completion criteria with commands |
-| 8 | `/specramo:review` | Review the Phase's diff from 4 perspectives in parallel. `/specramo:implement` runs it automatically. Given a PRD, Design Doc, plan, or Phase design, it runs the handoff check instead |
-| 9 | `/specramo:explain` | After review, open the PR as a draft and check the code explanation against your own understanding; once they match, mark the PR ready and request review |
-| - | `/specramo:status` | Show each feature's Phase progress and the command to run next |
+| 1 | `/sdd:init` | Create the config file and output directory |
+| 2 | `/sdd:prd` | Gather requirements interactively and write a PRD |
+| 3 | `/sdd:design` | Write a Design Doc that fixes behavior in an acceptance-criteria table |
+| 4 | `/sdd:plan` | Split the Design Doc into an implementation plan, one Phase = one PR |
+| 5 | `/sdd:phase-design` | Decide how to implement one Phase after reading the existing code (skipped for Phases with no open decisions) |
+| 6 | `/sdd:explain` | Explain the Phase's design before implementation |
+| 7 | `/sdd:implement` | Implement one Phase and verify its completion criteria with commands |
+| 8 | `/sdd:review` | Review the Phase's diff from 4 perspectives in parallel. `/sdd:implement` runs it automatically. Given a PRD, Design Doc, plan, or Phase design, it runs the handoff check instead |
+| 9 | `/sdd:explain` | After review, open the PR as a draft and check the code explanation against your own understanding; once they match, mark the PR ready and request review |
+| - | `/sdd:status` | Show each feature's Phase progress and the command to run next |
 
 Repeat steps 5 to 9 for each Phase. You open the PRs yourself; Spec Ramo never opens a PR.
 
@@ -65,9 +65,9 @@ Repeat steps 5 to 9 for each Phase. You open the PRs yourself; Spec Ramo never o
 The workflow does not depend on a language, architecture, or code layout. It works for web APIs, CLIs, libraries, batch jobs, and frontends alike. Some check scripts and bundled guidelines are narrower:
 
 - The Design Doc's Implementation Surface holds only the tables that fit what you build. Without a web API or screens, omit those tables; the check treats them as not applicable and passes
-- Language guidelines (one of the `/specramo:review` perspectives) are chosen by the extension table `guidelines/languages/extensions.tsv`. Guidelines for Go and TypeScript are bundled; for languages without a row, that perspective runs without a guideline
+- Language guidelines (one of the `/sdd:review` perspectives) are chosen by the extension table `guidelines/languages/extensions.tsv`. Guidelines for Go and TypeScript are bundled; for languages without a row, that perspective runs without a guideline
 - The plan's Change Map uses the layer names your repo declares (or real units such as modules and packages when none are declared). No particular architecture is assumed
-- `/specramo:status` asks the GitHub CLI (`gh`) whether a PR exists by default. On GitLab or other hosts, set `pr_check_command` in the config file
+- `/sdd:status` asks the GitHub CLI (`gh`) whether a PR exists by default. On GitLab or other hosts, set `pr_check_command` in the config file
 - Aligning table columns is optional. Use your repo's markdown formatter (such as prettier) if it has one
 - Some data checks assume a relational database. The check for removing or relaxing constraints is explained in terms of MySQL locking (`SELECT ... FOR UPDATE`, gap locks); adjust for PostgreSQL. The table-reader count (`scripts/table-readers.sh`) matches SQL strings (`FROM` / `JOIN`) only, so check callers separately in ORM-based or non-RDB repos
 - The HTTP status check in the design gate only warns, and does not apply to changes without a web API
@@ -78,20 +78,20 @@ Spec Ramo targets work large enough to need two or more PRs. For a typo or a sma
 
 ## Configuration
 
-Keys in `.specramo/config.yml`:
+Keys in `.sdd/config.yml`:
 
 | Key | Default | Meaning |
 |---|---|---|
-| `specs_dir` | `.specramo/specs` | Output directory; one sub-directory per feature |
+| `specs_dir` | `.sdd/specs` | Output directory; one sub-directory per feature |
 | `max_lines` | `400` | Upper limit of estimated changed lines per PR (excluding tests) |
 | `test_paths` | none | Path patterns of test files excluded from the line count |
 | `branch_pattern` | none | Shape of Phase branch names (e.g. `phase/<PR>-<slug>`). When empty, only the presence of a name is checked |
 | `rules` | none | Rule files that the "repo rules" review agent reads. When empty, the files in `.claude/rules/` are used |
-| `pr_check_command` | none | Command `/specramo:status` runs to check whether a branch has a PR; `{branch}` is replaced with the branch name. Exit 0 with output = PR exists, exit 0 with no output = no PR, non-zero = could not check. When empty, `gh pr list` is used (e.g. `glab mr list --source-branch {branch} --all --output json | jq '.[].iid'`) |
+| `pr_check_command` | none | Command `/sdd:status` runs to check whether a branch has a PR; `{branch}` is replaced with the branch name. Exit 0 with output = PR exists, exit 0 with no output = no PR, non-zero = could not check. When empty, `gh pr list` is used (e.g. `glab mr list --source-branch {branch} --all --output json | jq '.[].iid'`) |
 
-The environment variable `SPECRAMO_REVIEW_DATA_DIR` points the "past findings" review agent at your team's review-finding data (default `~/.config/specramo/review-data/`). This data is built from your team's past reviews and contains internal information, so keep it out of the repo. If the directory has no files, that agent is not started.
+The environment variable `SDD_REVIEW_DATA_DIR` points the "past findings" review agent at your team's review-finding data (default `~/.config/sdd/review-data/`). This data is built from your team's past reviews and contains internal information, so keep it out of the repo. If the directory has no files, that agent is not started.
 
-To use your own templates, put a file with the same name at `.specramo/templates/<prd|design|plan|phase-design>.md`.
+To use your own templates, put a file with the same name at `.sdd/templates/<prd|design|plan|phase-design>.md`.
 
 ## Development
 

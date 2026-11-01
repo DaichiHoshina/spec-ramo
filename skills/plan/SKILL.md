@@ -4,7 +4,7 @@ argument-hint: "[機能名 | 要件の 1 文] [--compact] [--phases <n>] [--upda
 disable-model-invocation: true
 ---
 
-# /specramo:plan - Design Doc から作業計画書を作る
+# /sdd:plan - Design Doc から作業計画書を作る
 
 > **Goal**: 実装前に作業を意味のある単位 (Phase = PR) に分け、各 Phase を読めば「何を作れば完了か」が分かる作業計画書を 1 file 作る。実装はしない。**分割の判断はレビューのしやすさを最優先にする** (Step 3 「分割の優先順位」)。
 
@@ -12,21 +12,21 @@ disable-model-invocation: true
 
 | Command | Use |
 |---|---|
-| `/specramo:design` | 実装から逆算した仕様書型 Design Doc (受け入れ条件の表と決定事項) を作る。この command の入力 |
-| `/specramo:plan` | Design Doc を実装単位 (作業計画書) に分け、PR 構成と完了条件を決める。責務までを記載し、実装形は記載しない |
-| `/specramo:phase-design` | Phase n の実装形 (公開する型と操作 / 問い合わせの方針 / TX / テスト観点) を、既存 code の調査から決める。単純な Phase では省く |
-| `/specramo:implement` | 作業計画書の Phase n だけを実装する |
+| `/sdd:design` | 実装から逆算した仕様書型 Design Doc (受け入れ条件の表と決定事項) を作る。この command の入力 |
+| `/sdd:plan` | Design Doc を実装単位 (作業計画書) に分け、PR 構成と完了条件を決める。責務までを記載し、実装形は記載しない |
+| `/sdd:phase-design` | Phase n の実装形 (公開する型と操作 / 問い合わせの方針 / TX / テスト観点) を、既存 code の調査から決める。単純な Phase では省く |
+| `/sdd:implement` | 作業計画書の Phase n だけを実装する |
 
 Design Doc を作る線引き (外部 interface が増える / 保存データの形が変わる / 画面が 2 つ以上変わる) に当たらない小さな変更は、Design Doc なしで要件の 1 文から直接この command に入ってよい。
 
 ## Compact mode (`--compact`)
 
-`/specramo:prd --compact` が作った 1 枚 (同じ dir の `prd.md`) を入力に、作業計画書と Phase 詳細設計を 1 枚の `plan.md` にまとめる。
+`/sdd:prd --compact` が作った 1 枚 (同じ dir の `prd.md`) を入力に、作業計画書と Phase 詳細設計を 1 枚の `plan.md` にまとめる。
 
-- Phase は 1 つにする。Step 3 で 2 つ以上に分かれると判断したら、作らずに通常の手順 (`/specramo:design`) へ戻るよう報告する
-- Step 1〜4 は通常どおり実行し、Phase 1 の節に `/specramo:phase-design` の出力項目 (公開する型と操作 / 問い合わせの方針 / TX / テスト観点 / `### 変更対象 file`) を加える。`/specramo:phase-design` は別に実行しない
+- Phase は 1 つにする。Step 3 で 2 つ以上に分かれると判断したら、作らずに通常の手順 (`/sdd:design`) へ戻るよう報告する
+- Step 1〜4 は通常どおり実行し、Phase 1 の節に `/sdd:phase-design` の出力項目 (公開する型と操作 / 問い合わせの方針 / TX / テスト観点 / `### 変更対象 file`) を加える。`/sdd:phase-design` は別に実行しない
 - 冒頭の箇条書きに `- 形式: コンパクト` の 1 行を置く。作業計画書の検査 (`spec-gate.sh`) はこの行がある file では実装形の混入を判定しない
-- 出口の review は通常と同じく省かない (Step 5)。Next は `/specramo:explain <機能名> --phase 1`、その後 `/specramo:implement <機能名> --phase 1`
+- 出口の review は通常と同じく省かない (Step 5)。Next は `/sdd:explain <機能名> --phase 1`、その後 `/sdd:implement <機能名> --phase 1`
 
 ## Step 0: 前提確認と雛形の解決
 
@@ -52,14 +52,14 @@ Design Doc を作る線引き (外部 interface が増える / 保存データ�
 
 1. Design Doc を Read する。「受け入れ条件」の表を最初に取り、Phase 分割の材料にする。条件は ID を保持しないので、先頭 20 字程度を引用して指す。各条件をどの test (API test / CLI の結合 test / unit test / 手動 等、repo にある種類) で確かめるかは Design Doc に無いので、この command が Phase の完了条件として決める
 2. Phase の候補は Design Doc の Implementation Surface (API / Read / Write / 画面 / Interfaces の表のうち DD にあるもの) から取り、各行をどの Phase に割り当てるかをこの command で決める。
-   - 操作名・問い合わせ・呼び出し元はここで決めず、`/specramo:phase-design` が Phase ごとに決める。method の存在は Design Doc が、どの Phase で作るかは作業計画書が、実装形は Phase 詳細設計が決める
+   - 操作名・問い合わせ・呼び出し元はここで決めず、`/sdd:phase-design` が Phase ごとに決める。method の存在は Design Doc が、どの Phase で作るかは作業計画書が、実装形は Phase 詳細設計が決める
    - 500 行を超える Design Doc は全文を読まず、見出しの一覧から範囲・目標・非目標・外部 interface の一覧・保存データの設計・UI の変更・リリース計画・既存の不具合の修正の節だけを読む
    - 1 文の要件なら、それを「目的」に置き、Design Doc の欄は「未作成」と記載する
 3. 雛形の節を勝手に減らさず、記載することが無い節は「該当なし」1 行にする。進捗の記録のように実装前には埋められない節は、見出しと「実装中に記入」の 1 行だけにする
 
-**入口の判定 (Design Doc が作業計画書を作れる状態か)**: `/specramo:design` の「完了判定」の 13 項目を Design Doc に当てる。
+**入口の判定 (Design Doc が作業計画書を作れる状態か)**: `/sdd:design` の「完了判定」の 13 項目を Design Doc に当てる。
 
-- 満たさない項目があれば Phase 分割に入らず、「Design Doc との差分」に記載して `/specramo:design --update` へ戻す
+- 満たさない項目があれば Phase 分割に入らず、「Design Doc との差分」に記載して `/sdd:design --update` へ戻す
 - 特に #12 (Design Doc だけで作業計画に落とせるか) と #13 (実装者が変わっても、作られるものの動きが変わらないか) を満たさない Design Doc から Phase を分けると、Phase ごとに要件を再検討することになる
 - あわせて Open Questions (未確定事項) の「決める時点」を確かめる。「作業計画書の作成前」「DD レビュー」の問いが未決のままなら Phase を分けず、問いと確認先を chat に示して止まる
 
@@ -118,7 +118,7 @@ Phase が 3 つ以上になったら、同梱の `purpose-traceability.md` に�
   - Design Doc にリリース計画 (DB、管理画面、ユーザーの画面のような段階) があれば、Phase の順序はそれに従う。無ければ「merge しても本番が壊れない順」で並べる
   - 旧経路と新経路が code 上で並存する置き換えでは、PR 分割計画を最初から「リリースする PR 群」と「切り戻しの期間の後に merge する削除の PR 群」の 2 群で組む。旧経路と、旧経路を前提にした code・test・fixture の削除は後者に置き、リリース後も切り替えの PR だけを revert して旧経路へ戻せるようにする。細則は同梱の `phase-anatomy.md` 「リリース後の削除の PR 群」を Read する
   - 状態を作らなくする PR (不変条件の追加 / 登録経路を 1 本にする / 旧経路の撤去) があるとき、その状態を読む code の分岐・test・fixture に加え、値を repo の外へ渡す境界 (API の応答の項目 / enum の値 / event / export) の項目と、その受け取る側も列挙し、削除する PR か削除しない理由に割り当てる。手順は `scope-scan.md` 「作られなくなる状態を読む側」、割り当ては `phase-anatomy.md` 「作られなくなる状態の読み手と PR の割り当て」に従う
-  - PR がレビューの指摘や「別 PR で対応します」という返信から生まれたとき、指摘の原文を読み、求められた変更を 1 つずつ列挙する (例: 「この API が `status` と `label` を返す必要はあるか」なら、項目ごとに 1 件)。各件を、その PR の完了条件に置くか、担当する別の PR の番号を付けて対象外に置く。担当 PR の無い件を対象外に置かない。発端の指摘への link は目的の行に置き、`/specramo:review` が突き合わせに使う
+  - PR がレビューの指摘や「別 PR で対応します」という返信から生まれたとき、指摘の原文を読み、求められた変更を 1 つずつ列挙する (例: 「この API が `status` と `label` を返す必要はあるか」なら、項目ごとに 1 件)。各件を、その PR の完了条件に置くか、担当する別の PR の番号を付けて対象外に置く。担当 PR の無い件を対象外に置かない。発端の指摘への link は目的の行に置き、`/sdd:review` が突き合わせに使う
   - 1 Phase = 1 PR。BE と FE が別の repo のときは Phase を共通にし、repo ごとに PR 1 本ずつとする (PR 分割計画に repo を記載する)。Phase 名は「サイズ取得機能を追加する」のように、merge 後に利用者か運用者ができることで記載する
   - Design Doc の範囲に「既存の不具合の修正」が同居していれば、利用者から見える挙動が別なので独立した Phase にし、新機能の Phase より前に置く
   - `--phases <n>` は上限であって目標ではない。意味の単位が n 未満ならそのまま少なく作る
@@ -158,8 +158,8 @@ FAIL が 0 件になったら、同梱の `phase-anatomy.md` 「自己点検の�
 
 - 作業計画書を Step 0 の path に書き出し、path を chat に示す。冒頭に PR の数と目安の日程を記載し、チームに共有する文を chat に 3 行以内で示す
 - 「Phase の状態」の表に、PR ごとの行を追加する。PR 列は `#<番号>`、Phase 名は PR の見出しの Phase 名、状態は「未着手」、説明は空にする
-- `/specramo:review <plan.md の path>` を確認なしで続けて実行し、`/specramo:phase-design` に必要な情報が揃っているかを確かめる。不足があればこの skill の手順で修正して確認し直す。報告には `specramo:review 引き継ぎ確認:` の結論の 1 行を含める
-- 不足が 0 件になったら、次のコマンドを 1 行で案内する: `/specramo:phase-design` (省略判定に当たる Phase なら `/specramo:explain`)
+- `/sdd:review <plan.md の path>` を確認なしで続けて実行し、`/sdd:phase-design` に必要な情報が揃っているかを確かめる。不足があればこの skill の手順で修正して確認し直す。報告には `sdd:review 引き継ぎ確認:` の結論の 1 行を含める
+- 不足が 0 件になったら、次のコマンドを 1 行で案内する: `/sdd:phase-design` (省略判定に当たる Phase なら `/sdd:explain`)
 - 実装には進まない
 
 ## 失敗時の分岐
@@ -171,7 +171,7 @@ FAIL が 0 件になったら、同梱の `phase-anatomy.md` 「自己点検の�
 
 ## 完了報告の例
 
-> 作業計画書を作成しました。PR は 4 本で、最初の PR は着手から 2 日以内に提出できる見込みです。作業計画書の検査は FAIL 0 で、引き継ぎ確認の不足も 0 件でした。次は `/specramo:phase-design <機能名> --phase 1` で Phase 1 の実装方法を決めます。
+> 作業計画書を作成しました。PR は 4 本で、最初の PR は着手から 2 日以内に提出できる見込みです。作業計画書の検査は FAIL 0 で、引き継ぎ確認の不足も 0 件でした。次は `/sdd:phase-design <機能名> --phase 1` で Phase 1 の実装方法を決めます。
 
 ## Read-only (作業計画書以外)
 

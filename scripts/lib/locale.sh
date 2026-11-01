@@ -2,7 +2,7 @@
 # 検査 script の文字数の判定 (grep -E の {0,120} など) を、利用者の locale によらず文字単位にする。
 # C locale では日本語 1 文字が 3 byte として数えられ、同じ文書でも判定が変わる。source して使う
 
-specramo_use_utf8_locale() {
+sdd_use_utf8_locale() {
   case "$(locale charmap 2>/dev/null)" in
     UTF-8|utf-8|utf8) return 0 ;;
   esac
@@ -17,4 +17,4 @@ specramo_use_utf8_locale() {
   return 1
 }
 
-specramo_use_utf8_locale || true
+sdd_use_utf8_locale || true

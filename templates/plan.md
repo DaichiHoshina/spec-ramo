@@ -1,6 +1,6 @@
 # 作業計画書の雛形
 
-`/specramo:plan` が使う雛形。導入先の `.specramo/templates/plan.md` に同じ名前の file を置くと、この雛形の代わりに使われる。その場合も「Phase の状態」の節と表の列は保つ (`/specramo:implement`・`/specramo:review`・`/specramo:explain`・`/specramo:status` がこの表を読み書きする)。
+`/sdd:plan` が使う雛形。導入先の `.sdd/templates/plan.md` に同じ名前の file を置くと、この雛形の代わりに使われる。その場合も「Phase の状態」の節と表の列は保つ (`/sdd:implement`・`/sdd:review`・`/sdd:explain`・`/sdd:status` がこの表を読み書きする)。
 
 ```markdown
 # 作業計画書: [機能名]
@@ -16,14 +16,14 @@
 | --- | --- | --- | --- |
 | #1 | [Phase 名] | 未着手 | |
 
-[PR ごとに 1 行。状態は 未着手 / 実装中 / レビュー済み / PR 作成済み のどれか。説明は `/specramo:explain` を実行した日付。どちらもコマンドが書き換えるので、手では変えない]
+[PR ごとに 1 行。状態は 未着手 / 実装中 / レビュー済み / PR 作成済み のどれか。説明は `/sdd:explain` を実行した日付。どちらもコマンドが書き換えるので、手では変えない]
 
-## 目的と実装の対応 (Phase が 3 つ以上のときだけ。`/specramo:plan` に同梱した対応表の書き方に従う)
+## 目的と実装の対応 (Phase が 3 つ以上のときだけ。`/sdd:plan` に同梱した対応表の書き方に従う)
 
 ## 影響範囲
 ### Change Map (構造の中の変更境界。`| 層 | 名前 | 責務 | 変更 |` の表。層は repo が宣言する層名 (宣言が無ければ module / package / 画面 / 外部連携 等の実在する構成単位) で書き、特定の architecture の層名を前提にしない。依存の向きで内側 (業務の中心) から外側 (入出力の境界) の順に上から並べ、向きが無い構成では処理の順に並べる。変更しない層も行にし、変更する層の `変更` 列に `★ PR #n` を書く)
 ### 既存実装の確認 (Design Doc が無い 1 文の要件のときだけ書く)
-### 対象ファイル / ディレクトリ (層と責務。file path は `/specramo:phase-design` が決める)
+### 対象ファイル / ディレクトリ (層と責務。file path は `/sdd:phase-design` が決める)
 ### テスト対象
 ### Design Doc との差分
 
@@ -45,7 +45,7 @@
 **完了条件**:
 **実装への指針**: [見える動きは同じで作り方だけが変わる決定 + 引き当てた repo の規約]
 #### 目的
-#### タスク (責務の単位。file:line / method 名 / TODO comment 位置は `/specramo:phase-design` が決める)
+#### タスク (責務の単位。file:line / method 名 / TODO comment 位置は `/sdd:phase-design` が決める)
 #### 動作確認手順
 
 ### PR #2: [Phase 名]

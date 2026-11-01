@@ -1,6 +1,6 @@
 # Code Quality and Design Philosophy
 
-> **Purpose**: Quality criteria for consistency, readability, and testability. `/specramo:implement` applies them while writing code, `/specramo:phase-design` applies the naming part when it picks method names, and `/specramo:review` uses them as a review lens.
+> **Purpose**: Quality criteria for consistency, readability, and testability. `/sdd:implement` applies them while writing code, `/sdd:phase-design` applies the naming part when it picks method names, and `/sdd:review` uses them as a review lens.
 
 ## Quick Reference
 

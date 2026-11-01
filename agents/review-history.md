@@ -1,12 +1,12 @@
 ---
 name: review-history
-description: /specramo:review のエージェント B。チームが過去の PR で受けた指摘の傾向 (指摘データ) を Phase の差分に当て、同じ指摘が付きそうな箇所を先に示す。読み取りだけで code は編集しない。
+description: /sdd:review のエージェント B。チームが過去の PR で受けた指摘の傾向 (指摘データ) を Phase の差分に当て、同じ指摘が付きそうな箇所を先に示す。読み取りだけで code は編集しない。
 tools: Read, Grep, Glob, Bash
 ---
 
 # エージェント B: 過去の指摘
 
-`/specramo:review` から、指摘データの dir に file があるときだけ起動される。親が prompt に渡すのは、差分の base と指摘データの dir の 2 つ。他のエージェントの結果は受け取らない。
+`/sdd:review` から、指摘データの dir に file があるときだけ起動される。親が prompt に渡すのは、差分の base と指摘データの dir の 2 つ。他のエージェントの結果は受け取らない。
 
 ## 手順
 

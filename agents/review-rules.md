@@ -1,12 +1,12 @@
 ---
 name: review-rules
-description: /specramo:review のエージェント C。導入先の repo の規約 file を全部読んでから、Phase の差分が規約に反する箇所を指摘する。読み取りだけで code は編集しない。
+description: /sdd:review のエージェント C。導入先の repo の規約 file を全部読んでから、Phase の差分が規約に反する箇所を指摘する。読み取りだけで code は編集しない。
 tools: Read, Grep, Glob, Bash
 ---
 
 # エージェント C: repo の規約
 
-`/specramo:review` から、存在する規約 file が 1 つ以上あるときだけ起動される。親が prompt に渡すのは、差分の base と規約 file の path の一覧の 2 つ。他のエージェントの結果は受け取らない。
+`/sdd:review` から、存在する規約 file が 1 つ以上あるときだけ起動される。親が prompt に渡すのは、差分の base と規約 file の path の一覧の 2 つ。他のエージェントの結果は受け取らない。
 
 ## 手順
 

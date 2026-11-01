@@ -1,6 +1,6 @@
-# /specramo:review の引き継ぎ確認の観点
+# /sdd:review の引き継ぎ確認の観点
 
-`/specramo:review` の引き継ぎ確認が、成果物ごとに「次の skill が入力として必要とする情報と条件」を確かめる表。`SKILL.md` 「引き継ぎ確認」から読む。観点を増やすときは、次の skill が実際に読む節の項目だけを追加する (次の skill の入力の手順が正本)。
+`/sdd:review` の引き継ぎ確認が、成果物ごとに「次の skill が入力として必要とする情報と条件」を確かめる表。`SKILL.md` 「引き継ぎ確認」から読む。観点を増やすときは、次の skill が実際に読む節の項目だけを追加する (次の skill の入力の手順が正本)。
 
 ## 共通の手順
 
@@ -13,14 +13,14 @@
 
 | 成果物 | 見分け方 | 次の skill | script | 判断で確かめる項目 |
 |---|---|---|---|---|
-| PRD | file 名が `prd.md`、または先頭が `# PRD:` | `/specramo:design` | なし | 下の「PRD」 |
-| Design Doc | file 名が `design.md`、または `Implementation Surface` と受け入れ条件の表がある | `/specramo:plan` | `${CLAUDE_PLUGIN_ROOT}/scripts/dd-gate.sh <path>` | 下の「Design Doc」 |
-| 作業計画書 | file 名が `plan.md`、または各 PR の `branch:` 行と Phase 見出しがある | `/specramo:phase-design` (省略判定に当たる Phase は `/specramo:explain`) | `${CLAUDE_PLUGIN_ROOT}/scripts/spec-gate.sh <path>` | 下の「作業計画書」 |
-| Phase 詳細設計 | file 名が `plan-phase<n>.md`、または `意味が変わる table:` の行がある | `/specramo:explain` → `/specramo:implement` | `${CLAUDE_PLUGIN_ROOT}/scripts/phase-gate.sh <path>` | 下の「Phase 詳細設計」 |
+| PRD | file 名が `prd.md`、または先頭が `# PRD:` | `/sdd:design` | なし | 下の「PRD」 |
+| Design Doc | file 名が `design.md`、または `Implementation Surface` と受け入れ条件の表がある | `/sdd:plan` | `${CLAUDE_PLUGIN_ROOT}/scripts/dd-gate.sh <path>` | 下の「Design Doc」 |
+| 作業計画書 | file 名が `plan.md`、または各 PR の `branch:` 行と Phase 見出しがある | `/sdd:phase-design` (省略判定に当たる Phase は `/sdd:explain`) | `${CLAUDE_PLUGIN_ROOT}/scripts/spec-gate.sh <path>` | 下の「作業計画書」 |
+| Phase 詳細設計 | file 名が `plan-phase<n>.md`、または `意味が変わる table:` の行がある | `/sdd:explain` → `/sdd:implement` | `${CLAUDE_PLUGIN_ROOT}/scripts/phase-gate.sh <path>` | 下の「Phase 詳細設計」 |
 
 ## PRD
 
-`/specramo:design` は PRD の Q1-Q5 を再評価せず転記し、用語表と受け入れ条件を Design Doc の入力にする。次が無いと Design Doc が PRD を作り直すことになる。
+`/sdd:design` は PRD の Q1-Q5 を再評価せず転記し、用語表と受け入れ条件を Design Doc の入力にする。次が無いと Design Doc が PRD を作り直すことになる。
 
 - 対象範囲: 利用者が触る画面と client が名前で列挙され、変更しない client に理由がある
 - 用語表: 判定に使う集合 (「注文済み」に何が含まれるか) と既存機能の名前が定義されている
@@ -33,7 +33,7 @@
 
 ### PRD (コンパクト)
 
-`/specramo:prd --compact` が作った 1 枚は、次の skill が `/specramo:plan --compact` になる。上の項目のうち、機能要件と技術メモは見ず、代わりに次を確かめる。
+`/sdd:prd --compact` が作った 1 枚は、次の skill が `/sdd:plan --compact` になる。上の項目のうち、機能要件と技術メモは見ず、代わりに次を確かめる。
 
 - `## 2. 設計` に、処理の変更と test の方針があり、受け入れ条件の各条件をどの test で確かめるかが分かる
 - 設計が名指しする code の位置 (層と関数) が `## 2. 設計` にある
@@ -41,7 +41,7 @@
 
 ## Design Doc
 
-`/specramo:plan` は入口で `/specramo:design` の「完了判定」の表の全項目を Design Doc に当てる。この確認は同じ表を、作業計画書を作る前に先取りする。`dd-gate.sh` が判定する項目は script の結果を使い、残りを次で確かめる。
+`/sdd:plan` は入口で `/sdd:design` の「完了判定」の表の全項目を Design Doc に当てる。この確認は同じ表を、作業計画書を作る前に先取りする。`dd-gate.sh` が判定する項目は script の結果を使い、残りを次で確かめる。
 
 - 目的の 1 文目に、誰の、どの状況が変わるのかがある (#2)
 - Implementation Surface に API / Read・Write の能力 / 画面 / 保存データが表で整理され、PR 単位に分解できる (#3)
@@ -53,7 +53,7 @@
 
 ## 作業計画書
 
-`/specramo:phase-design` は Phase 1 つの 目的 / 対象 / Read・Write / 対象外 / 完了条件 / 実装への指針 だけを scope として読み、他 Phase を読まない。そのため、Phase 単体で読める必要がある。
+`/sdd:phase-design` は Phase 1 つの 目的 / 対象 / Read・Write / 対象外 / 完了条件 / 実装への指針 だけを scope として読み、他 Phase を読まない。そのため、Phase 単体で読める必要がある。
 
 - 各 Phase に 目的 / 対象 / 対象外 / 完了条件 / 実装への指針 / 依存 / branch / 想定の変更行数 が揃っている
 - 対象と対象外が file path でなく、層と責務で書かれている
@@ -61,15 +61,15 @@
 - Design Doc の Implementation Surface の全行が、どれかの Phase の対象に割り当てられている
 - Phase の順序と依存が矛盾しない (依存先が先の Phase で、保存データの変更 → API → 画面の順を逆にしていない)
 - 未確定事項が無い。未決のままなら Qn と確認先が示され、どの Phase が止まるか分かる
-- `/specramo:phase-design` の省略判定を Phase ごとに当て、`phase-design` か `省略` かの Next を Phase ごとに 1 行で示せる
+- `/sdd:phase-design` の省略判定を Phase ごとに当て、`phase-design` か `省略` かの Next を Phase ごとに 1 行で示せる
 
 ### 作業計画書 (コンパクト)
 
-冒頭に `- 形式: コンパクト` の行がある作業計画書は、Phase 詳細設計を同じ file に含む。`spec-gate.sh` はこの行がある file では実装形の混入を判定しない。代わりに下の「Phase 詳細設計」の項目を同じ file に当てる。前の段の成果物は PRD (コンパクト) の 1 枚で、受け入れ条件と test の件数がそちらの `## 2. 設計` と一致するかも突き合わせる。Next は `/specramo:explain <機能名> --phase 1` とする。
+冒頭に `- 形式: コンパクト` の行がある作業計画書は、Phase 詳細設計を同じ file に含む。`spec-gate.sh` はこの行がある file では実装形の混入を判定しない。代わりに下の「Phase 詳細設計」の項目を同じ file に当てる。前の段の成果物は PRD (コンパクト) の 1 枚で、受け入れ条件と test の件数がそちらの `## 2. 設計` と一致するかも突き合わせる。Next は `/sdd:explain <機能名> --phase 1` とする。
 
 ## Phase 詳細設計
 
-`/specramo:explain` は設計の説明に、`/specramo:implement` は実装形の採用にこの文書を読む。実装者が追加で決めることが残っていると、設計と実装がずれる。
+`/sdd:explain` は設計の説明に、`/sdd:implement` は実装形の採用にこの文書を読む。実装者が追加で決めることが残っていると、設計と実装がずれる。
 
 - 作業計画書の同じ Phase の scope (対象 / 対象外 / 完了条件) の範囲で書かれている。他 Phase の内容を含まず、対象外の file を変更対象にしていない
 - 実装方法が揃っている: 公開する型と操作 / 契約 (入力・出力・error) / 不変条件 / 問い合わせの方針 / TX 境界 / 排他制御 / テスト観点

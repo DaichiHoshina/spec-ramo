@@ -1,4 +1,4 @@
-# /specramo:design の細則 (入力の分岐 / Step 3 / 3.5 / 4 / 5 / 7.6 と完了判定の判定方法)
+# /sdd:design の細則 (入力の分岐 / Step 3 / 3.5 / 4 / 5 / 7.6 と完了判定の判定方法)
 
 `SKILL.md` の各 Step から読む。規則の中身は SKILL.md 本文と同じで、本文には手順の骨格だけを置いている。
 
@@ -8,7 +8,7 @@
 - 既存の受け入れ条件の文を保ち、差分だけ Edit する。
 - この skill の定義を更新した後の既存 Design Doc も再生成せず、`bash "${CLAUDE_PLUGIN_ROOT}/scripts/dd-gate.sh" <path>` を適用して FAIL と WARN の項目だけ Edit する。
 - 起動するのは仕様が変わったときだけで、実装中に決まった細部を都度書き戻して仕様書にしない (書き換えたら user がレビュー依頼して認識を合わせる)
-- Edit と `dd-gate.sh` の後も、SKILL.md の Step 7.5 (writing check)、7.6 (第三者 review)、8 (Handoff の `/specramo:review`) を省かずに実行する。差分の行数や「意味が変わらない」という自分の判断を、省く理由にしない。1 行の追加でも、既存の条件や決定事項との組み合わせで結果が変わることがあり、それを確かめるのがこの 3 つの確認になる
+- Edit と `dd-gate.sh` の後も、SKILL.md の Step 7.5 (writing check)、7.6 (第三者 review)、8 (Handoff の `/sdd:review`) を省かずに実行する。差分の行数や「意味が変わらない」という自分の判断を、省く理由にしない。1 行の追加でも、既存の条件や決定事項との組み合わせで結果が変わることがあり、それを確かめるのがこの 3 つの確認になる
 
 ## derive mode
 
@@ -16,7 +16,7 @@
 - PRD の `1.5 decision rationale` (Q1-Q5) は再評価せず転記する (`Source: <PRD path>` を付ける)。
 - PRD の `1.6 Non-Goals` は参照だけにし、DD の Non-Goals には PRD に無い対象外 (技術的な入口の除外など) だけを記載する。
 - PRD に実装方式 (列 / 制約 / SQL) が含まれていても、それは転記の対象でなく候補の 1 つとして扱い、Step 3 で先例と比べてから決める。
-- 同じ dir に `/specramo:prd` が分けた技術メモ (tech-notes.md) があれば Step 3 の入力として Read する。
+- 同じ dir に `/sdd:prd` が分けた技術メモ (tech-notes.md) があれば Step 3 の入力として Read する。
 - 記載された code の位置と先例は、書かれた時点の事実として実物で確かめてから使う
 
 ## Step 3: Analyze code の論点
@@ -42,7 +42,7 @@ draft 前に `writing-rules.md` の「文書全体の読みやすさ」を当て
 
 - 先頭の `No` 列の通し番号は読みやすさのためだけで、本文や後続のステップから引用しない
 - 列名を `#` にしない (GitHub が番号を issue への link にするので紛らわしくなる)
-- PRD の条件は PRD の番号 (A-n など) で参照する。`/specramo:prd` で作った PRD のように番号が無ければ条件の文を backtick で引用する
+- PRD の条件は PRD の番号 (A-n など) で参照する。`/sdd:prd` で作った PRD のように番号が無ければ条件の文を backtick で引用する
 - DD には PRD に無い条件だけを記載する
 
 ## Step 5: 決定事項の 3 論点と節の削り方

@@ -1,16 +1,16 @@
 ---
-description: 実装から逆算した仕様書型の Design Doc を作る。振る舞いを受け入れ条件の表で固定し、/specramo:plan の入力にする。「Design Doc を作って」「設計書を作って」で使う。
+description: 実装から逆算した仕様書型の Design Doc を作る。振る舞いを受け入れ条件の表で固定し、/sdd:plan の入力にする。「Design Doc を作って」「設計書を作って」で使う。
 argument-hint: "[機能名 | --update <path>] [--dry]"
 disable-model-invocation: true
 ---
 
-# /specramo:design - 実装から逆算した仕様書型 Design Doc
+# /sdd:design - 実装から逆算した仕様書型 Design Doc
 
-> **Goal**: Design Doc は、利用者から見える動きだけでなく、その変更を構成する外部 interface (Web API・画面・CLI・公開 API・event 等のうち該当するもの)・Read / Write・必要なシステム能力まで整理し、作業計画書で PR 単位の実装計画へ分解できる状態にする文書。作業計画書はその変更面を Phase = PR・層と責務・完了条件へ具体化する文書。file / method / SQL は `/specramo:phase-design` が決める。短く言えば「Design Doc = PR 分割できる粒度までシステム変更面を設計する文書、作業計画書 = その変更面を実装順と PR へ具体化する文書」。完成条件は「Design Doc だけを読んだ人が、実装詳細を知らなくても『何を作れば正解か』を判断できる状態」。
+> **Goal**: Design Doc は、利用者から見える動きだけでなく、その変更を構成する外部 interface (Web API・画面・CLI・公開 API・event 等のうち該当するもの)・Read / Write・必要なシステム能力まで整理し、作業計画書で PR 単位の実装計画へ分解できる状態にする文書。作業計画書はその変更面を Phase = PR・層と責務・完了条件へ具体化する文書。file / method / SQL は `/sdd:phase-design` が決める。短く言えば「Design Doc = PR 分割できる粒度までシステム変更面を設計する文書、作業計画書 = その変更面を実装順と PR へ具体化する文書」。完成条件は「Design Doc だけを読んだ人が、実装詳細を知らなくても『何を作れば正解か』を判断できる状態」。
 
 ## 抽象度の上限 (DD に書かないもの)
 
-DD に記載するのは、作業計画書を作るのに必要な情報だけにする。次は Phase 詳細設計 (`/specramo:phase-design`) で決める内容で、DD には書かない。repo の DD の雛形にこれらを記載する節 (エンドポイント詳細 / Request / Response / DDL 例 等) があっても、その節は作らない。
+DD に記載するのは、作業計画書を作るのに必要な情報だけにする。次は Phase 詳細設計 (`/sdd:phase-design`) で決める内容で、DD には書かない。repo の DD の雛形にこれらを記載する節 (エンドポイント詳細 / Request / Response / DDL 例 等) があっても、その節は作らない。
 
 - API の request / response の項目名・型・例 (JSON)、HTTP status、エラー文言
 - 列の型・default・index の詳細と DDL (table の役割と、重複を禁止する組み合わせまでは書く)
@@ -21,22 +21,22 @@ DD に記載するのは、作業計画書を作るのに必要な情報だけ�
 
 ## Design Doc と作業計画書とPhase 詳細設計の境界 (正本)
 
-| Design Doc に記載する | 作業計画書に記載する | `/specramo:phase-design` に記載する |
+| Design Doc に記載する | 作業計画書に記載する | `/sdd:phase-design` に記載する |
 |---|---|---|
 | 背景・課題 / 目的 / 要件 | Phase = PR と実装順序 | 変更 file / 関数・メソッド / 問い合わせ / 公開する契約 |
 | 期待する振る舞い / 外部 interface・保存データ・UI の変更 (何が増え、何が変わるか) | 触る層とその責務 | 契約 / TX / 排他 |
 | 制約 / 非対象 / Acceptance Criteria | 完了条件 (どの test で確かめるか) | test の実装方針 |
 | 設計上の重要な決定 (利用者から見える動きが変わる決定) | 処理の置き場や共用の仕方 (見える動きは同じで作り方だけが変わる決定) | データ移行の手順 / code レベルの詳細 |
 
-判定基準は「それが変わったとき利用者から見える動きが変わるか」。関数名や処理の分け方が変わっても見える動きが同じなら Design Doc の外側になる。ただし **method の「存在」は Design Doc、どの Phase で作るかは作業計画書、method の「実装形」はPhase 詳細設計**。「配送手続き中の注文が指定の配送オプションを使っているか判定する Read が必要」までは Design Doc に記載し、その method 名・SQL・呼び出し元は `/specramo:phase-design` が記載する。Design Doc に PR1 / PR2 のような分割は記載しない。
+判定基準は「それが変わったとき利用者から見える動きが変わるか」。関数名や処理の分け方が変わっても見える動きが同じなら Design Doc の外側になる。ただし **method の「存在」は Design Doc、どの Phase で作るかは作業計画書、method の「実装形」はPhase 詳細設計**。「配送手続き中の注文が指定の配送オプションを使っているか判定する Read が必要」までは Design Doc に記載し、その method 名・SQL・呼び出し元は `/sdd:phase-design` が記載する。Design Doc に PR1 / PR2 のような分割は記載しない。
 
-**Position**: 要件の `/specramo:prd`、仕様のこの command、Phase = PR 分割の `/specramo:plan`、Phase n の実装方法の `/specramo:phase-design` (省略可)、設計の説明の `/specramo:explain`、Phase 実装の `/specramo:implement`、Phase の review の `/specramo:review`、code の説明の `/specramo:explain` の順に進む。
+**Position**: 要件の `/sdd:prd`、仕様のこの command、Phase = PR 分割の `/sdd:plan`、Phase n の実装方法の `/sdd:phase-design` (省略可)、設計の説明の `/sdd:explain`、Phase 実装の `/sdd:implement`、Phase の review の `/sdd:review`、code の説明の `/sdd:explain` の順に進む。
 
 > この command は大きい開発 (外部 interface (API / CLI / 公開関数 等) が増える / 保存データの形が変わる / 画面が 2 つ以上変わる) でだけ使う。小さな変更は Design Doc を作らずに直接実装する。
 
 ## 規範と雛形 (Read only)
 
-着手前に、同梱した `writing-rules.md` (逆算の 4 原則、利用者が仕様を理解できる文章、構造ゲート) と Step 0 で決めた雛形を Read する。repo に独自の Design Doc の雛形を使いたいときは、導入先の `.specramo/templates/design.md` に置けば Step 0 がそちらを使う。
+着手前に、同梱した `writing-rules.md` (逆算の 4 原則、利用者が仕様を理解できる文章、構造ゲート) と Step 0 で決めた雛形を Read する。repo に独自の Design Doc の雛形を使いたいときは、導入先の `.sdd/templates/design.md` に置けば Step 0 がそちらを使う。
 
 - `specs_dir` の下に既存の DD があれば 2 本読み、節の名前・図の使い方・文の長さを合わせる
 - 雛形に spec 型の節 (Implementation Surface / Required Read・Write Capabilities / 合計の 1 行) が無ければ、その節は作らない
@@ -55,7 +55,7 @@ DD に記載するのは、作業計画書を作るのに必要な情報だけ�
    bash "${CLAUDE_PLUGIN_ROOT}/scripts/resolve-template.sh" design
    ```
 
-3. 書き出し先は、設定 file の `specs_dir` の下の機能名の dir の `design.md` にする。引数の先頭の語が英小文字・数字・`-` だけなら、その語を機能名としてそのまま使い、言い換えない (後続の `/specramo:plan` などは利用者がその名前で path を指定する)。そうでなければ要件から英小文字と `-` の短い名前を決め、完了報告に dir の path を示す。同じ dir に `prd.md` があれば、Input interpretation の derive mode として読む。
+3. 書き出し先は、設定 file の `specs_dir` の下の機能名の dir の `design.md` にする。引数の先頭の語が英小文字・数字・`-` だけなら、その語を機能名としてそのまま使い、言い換えない (後続の `/sdd:plan` などは利用者がその名前で path を指定する)。そうでなければ要件から英小文字と `-` の短い名前を決め、完了報告に dir の path を示す。同じ dir に `prd.md` があれば、Input interpretation の derive mode として読む。
 
 ## Input interpretation (ARGUMENTS からの自動分岐)
 
@@ -99,13 +99,13 @@ path があって fix keyword が無いときだけ、PRD から導くのか既�
    - 書き手と別の context にするため、Claude Code の汎用のサブエージェントへ委譲し、1 回だけ実行する
    - 6 観点、prompt、指摘の扱いは anatomy 「Step 7.6: 第三者 review の実行者と指摘の扱い」に従う
 8. Handoff: 次の順に実行する。update mode でも順序と内容は同じにする
-   1. `/specramo:review <design.md の path>` を確認なしで続けて実行し、作業計画書に必要な情報が揃っているかを確かめる。review の対象はこの Design Doc なので、作業計画書の更新を待たずに実行する。不足があればこの skill の手順で修正して確認し直す (`--dry` のときは file が無いので review を省き、その旨を 1 行添える)
-   2. update mode のときは、不足が 0 件になった後に、同じ dir に `plan.md` が既にあるかを確かめる。あれば、次のコマンドを `/specramo:plan --update <機能名>` にする (機能名は `design.md` を置いた dir の名前)。新規作成の `/specramo:plan` を案内すると、作業計画書と既存の Phase 詳細設計が更新前の内容のまま使われる
-   3. 次のコマンドを 1 行で案内する。新規作成のとき、または 2 で `plan.md` が無かったときは `/specramo:plan` にする。次のコマンドを「要決定:」の問いに置き換えない
+   1. `/sdd:review <design.md の path>` を確認なしで続けて実行し、作業計画書に必要な情報が揃っているかを確かめる。review の対象はこの Design Doc なので、作業計画書の更新を待たずに実行する。不足があればこの skill の手順で修正して確認し直す (`--dry` のときは file が無いので review を省き、その旨を 1 行添える)
+   2. update mode のときは、不足が 0 件になった後に、同じ dir に `plan.md` が既にあるかを確かめる。あれば、次のコマンドを `/sdd:plan --update <機能名>` にする (機能名は `design.md` を置いた dir の名前)。新規作成の `/sdd:plan` を案内すると、作業計画書と既存の Phase 詳細設計が更新前の内容のまま使われる
+   3. 次のコマンドを 1 行で案内する。新規作成のとき、または 2 で `plan.md` が無かったときは `/sdd:plan` にする。次のコマンドを「要決定:」の問いに置き換えない
 
 ## 完了判定 (Step 6 の gate = 作業計画書を作成する前のチェックリスト)
 
-「作業計画書を作成する前に、何を作るかが十分に固定できているか」を確かめる。全項目を満たしたら Design Doc レビューに提出し、OK なら `/specramo:plan` に進む。1 つでも満たさなければ Step 4-5 に戻る。
+「作業計画書を作成する前に、何を作るかが十分に固定できているか」を確かめる。全項目を満たしたら Design Doc レビューに提出し、OK なら `/sdd:plan` に進む。1 つでも満たさなければ Step 4-5 に戻る。
 
 **この gate が検査するのは、実装の振る舞いでなく要件の書かれ方だ**。
 
@@ -125,8 +125,8 @@ path があって fix keyword が無いときだけ、PRD から導くのか既�
 | 8 | 既存仕様との関係 | 何を維持し、何を変えるのか明確 (PRD から変えた点は「PRD と違う点」と明記し、書き戻す) | 「PRD に書き戻す要件」の表 |
 | 9 | 重要な設計判断 | 複数案があり得る部分について、どの方向にするか決まっている。却下案と理由がある。未確定事項 (Qn) に依存する決定は「暫定決定」と明記し、Qn と矛盾して見えないようにする | 設計判断の節 |
 | 10 | 制約・前提条件 | 後方互換、性能、既存データ、リリース条件が書かれている。切替を伴うなら flag の型 (原則は code 定数型) と有効化 PR、撤去の条件が Release の節にある | 決定事項の「受け入れる制約」列、Release の節 |
-| 11 | 実装方法に寄りすぎていない | 関数名、問い合わせ、file 名、処理の置き場、詳細な実装順序を記載していない。「読み取りの処理に存在確認を追加」「この問い合わせを使う」「この file を変更」はPhase 詳細設計 (`/specramo:phase-design`) 側で、作業計画書にも記載しない | `${CLAUDE_PLUGIN_ROOT}/skills/design/anatomy.md` 「完了判定 #11: 実装方法に寄りすぎていないかの判定方法」 |
-| 12 | Design Doc だけで作業計画書を書き始められる | 「結局何を作るんだっけ」を追加確認しなくても作業計画に落とせる。未決事項は推奨を暫定決定として決定事項に置き、Open Questions の表は「暫定決定 / 再レビューの条件 / 確認先」だけを保持する。再レビューの条件の正本は Open Questions の表で、決定側には「暫定決定 (Qn)」と記載するだけにする (2 か所に記載すると片方だけ修正する) | `/specramo:plan` の入口判定 |
+| 11 | 実装方法に寄りすぎていない | 関数名、問い合わせ、file 名、処理の置き場、詳細な実装順序を記載していない。「読み取りの処理に存在確認を追加」「この問い合わせを使う」「この file を変更」はPhase 詳細設計 (`/sdd:phase-design`) 側で、作業計画書にも記載しない | `${CLAUDE_PLUGIN_ROOT}/skills/design/anatomy.md` 「完了判定 #11: 実装方法に寄りすぎていないかの判定方法」 |
+| 12 | Design Doc だけで作業計画書を書き始められる | 「結局何を作るんだっけ」を追加確認しなくても作業計画に落とせる。未決事項は推奨を暫定決定として決定事項に置き、Open Questions の表は「暫定決定 / 再レビューの条件 / 確認先」だけを保持する。再レビューの条件の正本は Open Questions の表で、決定側には「暫定決定 (Qn)」と記載するだけにする (2 か所に記載すると片方だけ修正する) | `/sdd:plan` の入口判定 |
 | 13 | 実装者が変わっても、作られるものの動きが変わらない | 人によって違うものを作る余地が小さい (判定に使う集合、主語と対象、決定の組み合わせが明記されている) | 用語節に集合の内外、各文に行為者と対象 |
 
 一番重要なのは 11 〜 13 の 3 つ。良い状態は「何を作れば正解かは決まっている。どう作るかは作業計画書で決められる」、弱い状態は「作業計画書を書こうとすると要件や完成条件を再検討しないといけない」。

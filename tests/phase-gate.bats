@@ -7,7 +7,7 @@ setup() {
   READERS="${PROJECT_ROOT}/scripts/table-readers.sh"
   GATE="${PROJECT_ROOT}/scripts/phase-gate.sh"
   REPO="${BATS_TEST_TMPDIR}/repo"
-  mkdir -p "$REPO/pkg/reader" "$REPO/admin" "$REPO/migrations" "$REPO/.specramo/specs/f"
+  mkdir -p "$REPO/pkg/reader" "$REPO/admin" "$REPO/migrations" "$REPO/.sdd/specs/f"
   cat > "$REPO/pkg/reader/item.go" <<'EOF'
 q := "SELECT id FROM items WHERE order_id = ?"
 q2 := "SELECT id FROM items_archive WHERE id = ?"
@@ -19,7 +19,7 @@ EOF
   printf 'ALTER TABLE items ADD COLUMN deleted_at DATETIME;\nSELECT 1 FROM items;\n' > "$REPO/migrations/1_.up.sql"
   git -C "$REPO" init -q
   git -C "$REPO" add -A
-  DOC="$REPO/.specramo/specs/f/plan-phase1.md"
+  DOC="$REPO/.sdd/specs/f/plan-phase1.md"
 }
 
 write_doc() { # $1 = 節に記載する件数、$2 = 扱いの行数 (省略時は $1 と同じ)、$3 = 意味が変わる table の宣言 (省略時は items)

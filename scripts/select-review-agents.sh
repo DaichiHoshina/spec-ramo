@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# /specramo:review が起動するエージェントを決める。1 行 1 エージェントで、tab 区切りの
+# /sdd:review が起動するエージェントを決める。1 行 1 エージェントで、tab 区切りの
 #   <A|B|C|D> <TAB> run  <TAB> <エージェントに渡す値>
 #   <A|B|C|D> <TAB> skip <TAB> <省いた理由>
 # を表示する。渡す値は、B が指摘データの dir、C が規約 file (空白区切り)、D が開発指針の
@@ -8,7 +8,7 @@
 #   warn <TAB> C <TAB> <警告>
 # を表示する。skill はこの表示どおりに起動する。
 # 引数: $1 = 設定 file を探し始める dir (省略時は current dir)、$2 以降 = 差分の file 名
-# 環境変数: SPECRAMO_REVIEW_DATA_DIR (B の指摘データの場所。未設定なら ~/.config/specramo/review-data)
+# 環境変数: SDD_REVIEW_DATA_DIR (B の指摘データの場所。未設定なら ~/.config/sdd/review-data)
 set -u
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -18,8 +18,8 @@ plugin_root="$(dirname "$here")"
 start_dir="${1:-.}"
 [ $# -gt 0 ] && shift
 
-config="$(specramo_config_path "$start_dir")" || {
-  echo "設定 file (.specramo/config.yml) がありません。/specramo:init を実行してください"
+config="$(sdd_config_path "$start_dir")" || {
+  echo "設定 file (.sdd/config.yml) がありません。/sdd:init を実行してください"
   exit 2
 }
 repo_root="$(dirname "$(dirname "$config")")"
@@ -29,7 +29,7 @@ tab="$(printf '\t')"
 printf 'A%srun%s\n' "$tab" "$tab"
 
 # B 過去の指摘: 指摘データの場所に file が 1 つ以上あるときだけ起動する
-data_dir="${SPECRAMO_REVIEW_DATA_DIR:-$HOME/.config/specramo/review-data}"
+data_dir="${SDD_REVIEW_DATA_DIR:-$HOME/.config/sdd/review-data}"
 if [ -d "$data_dir" ] && [ -n "$(find "$data_dir" -type f 2>/dev/null | head -1)" ]; then
   printf 'B%srun%s%s\n' "$tab" "$tab" "$data_dir"
 else
@@ -38,7 +38,7 @@ fi
 
 # C repo の規約: 設定 file の rules のうち存在する path。未記入なら .claude/rules/ の file
 found=""
-if rules="$(specramo_config_get "$config" rules)"; then
+if rules="$(sdd_config_get "$config" rules)"; then
   while IFS= read -r p; do
     [ -n "$p" ] || continue
     if [ -e "$repo_root/$p" ]; then

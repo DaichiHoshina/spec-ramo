@@ -1,6 +1,6 @@
-# /specramo:plan Step 2 の scope 走査 checklist
+# /sdd:plan Step 2 の scope 走査 checklist
 
-`/specramo:plan` Step 2 で Design Doc に記載された API / Query / Command / 画面ごとに実物を確かめる作業の checklist。本文は「code 解析 tool か grep で対象 file と test file を列挙する」までに限定し、個々の判定はここに記載する。
+`/sdd:plan` Step 2 で Design Doc に記載された API / Query / Command / 画面ごとに実物を確かめる作業の checklist。本文は「code 解析 tool か grep で対象 file と test file を列挙する」までに限定し、個々の判定はここに記載する。
 
 ## 参照件数と Phase 配置
 
@@ -64,4 +64,4 @@ Design Doc の記述と code が一致しない点は、次の 2 つに分けて
   - 受け取る側を列挙しきれない境界 (外部公開の API、consumer の一覧が無い topic) は、【未確認】として、探した場所と検索した語を記載する。未確認の項目は削除しない側に割り当てる
 - 受け取る側の grep は、項目名で止めずに、値を受け取った変数や共通の部品まで追う。項目名が画面固有の dir に無くても、共通の部品が表示していることがある
 - 自動生成の型や client にだけ項目名がある場合は、それを参照する画面の code があるかまで確かめる。生成物だけの一致は読む側に数えない
-- 列挙した行の割り当ては `phase-anatomy.md` 「作られなくなる状態の読み手と PR の割り当て」に従う。境界の項目も同じ表で割り当て、削除するかどうかを計画の時点で決める。`/specramo:phase-design` は、削除すると決めた項目について API 仕様と生成物の変更方法だけを扱う
+- 列挙した行の割り当ては `phase-anatomy.md` 「作られなくなる状態の読み手と PR の割り当て」に従う。境界の項目も同じ表で割り当て、削除するかどうかを計画の時点で決める。`/sdd:phase-design` は、削除すると決めた項目について API 仕様と生成物の変更方法だけを扱う

@@ -1,4 +1,4 @@
-# /specramo:implement の細則 (Step 1 / 2 / 3 の判定方法)
+# /sdd:implement の細則 (Step 1 / 2 / 3 の判定方法)
 
 `skills/implement/SKILL.md` の各 Step から読む。規則の中身は SKILL.md と同じで、SKILL.md には手順の骨格だけを置いている。
 
@@ -13,13 +13,13 @@
 ### 3. 状態の更新の終了コード
 
 - 終了コードが 3 (遷移に無い。たとえば PR 作成済み) なら、実装せずにその表示を利用者に示して止まる
-- 終了コードが 2 なら、作業計画書に「Phase の状態」の表か行が無いので、`/specramo:plan` で表を補うよう 1 行報告して止まる
+- 終了コードが 2 なら、作業計画書に「Phase の状態」の表か行が無いので、`/sdd:plan` で表を補うよう 1 行報告して止まる
 
 ### 4. Phase 詳細設計の扱い
 
 - **「無効」と記載された file**: 冒頭に「無効」と記載された Phase 詳細設計は、作業計画書を更新した後の古い契約なので、file が無いときと同じに扱う
-- **見つからないとき**: `/specramo:phase-design` Step 0 の省略判定をこの Phase に当てる。当たるなら作業計画書の 対象 / 完了条件 から実装形を自分で決めてよい
-- **実物と一致しないとき**: 実装を進めず、不一致を 1 行報告して `/specramo:phase-design` へ戻す
+- **見つからないとき**: `/sdd:phase-design` Step 0 の省略判定をこの Phase に当てる。当たるなら作業計画書の 対象 / 完了条件 から実装形を自分で決めてよい
+- **実物と一致しないとき**: 実装を進めず、不一致を 1 行報告して `/sdd:phase-design` へ戻す
 
 ### 5. repo 規範と命名
 
@@ -32,7 +32,7 @@
 ### scope を超えるタスク
 
 - 参照が 10 file を超える rename や nullable 化が典型になる
-- 作業計画書は `/specramo:plan --update` で更新し、この skill は作業計画書の本文を編集しない
+- 作業計画書は `/sdd:plan --update` で更新し、この skill は作業計画書の本文を編集しない
 
 ### 計画書と実物の不一致
 
@@ -57,7 +57,7 @@ repo 全体の lint は大きな repo では timeout を超える。対象にし
 ### migration を含む Phase の使い捨ての DB
 
 1. 共有の DB に適用できないのは、他の branch の schema が入っているときや、他の作業と共有しているときになる
-2. 使い捨ての DB は、手元の DB server に作る別名の database (`specramo_` で始まる名前) か、repo と同じ version の DB を起動した container (`specramo-` で始まる名前) のどちらかにする
+2. 使い捨ての DB は、手元の DB server に作る別名の database (`sdd_` で始まる名前) か、repo と同じ version の DB を起動した container (`sdd-` で始まる名前) のどちらかにする
 3. そこで up と down を実行して確かめ、終わったら database か container を削除する
 4. どちらも用意できない環境では「未実行」と記載する
 
